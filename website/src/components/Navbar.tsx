@@ -41,7 +41,7 @@ export default function Navbar() {
           ))}
           <div className="ml-3 h-5 w-px bg-border" />
           <a
-            href="https://github.com/Champion2005/reforge"
+            href="https://github.com/Champion2005/reforge-ai"
             aria-label="GitHub repository"
           >
             <Github className="h-4.5 w-4.5" />
@@ -76,7 +76,7 @@ export default function Navbar() {
             </Link>
           ))}
           <a
-            href="https://github.com/Champion2005/reforge"
+            href="https://github.com/Champion2005/reforge-ai"
             target="_blank"
             rel="noopener noreferrer"
             className="block rounded-md px-3 py-2 text-sm text-muted-foreground"

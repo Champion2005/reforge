@@ -54,9 +54,9 @@ const features = [
 ]
 
 const heroCode = `import { z } from 'zod';
-import { guard } from 'reforge';
+import { guard } from 'reforge-ai';
 
-const User = z.object({
+const User= z.object({
   name: z.string(),
   age:  z.number(),
 });
@@ -75,7 +75,7 @@ if (result.success) {
   console.log(result.retryPrompt);
 }`
 
-const installCmd = 'npm install reforge zod'
+const installCmd = 'npm install reforge-ai zod'
 
 export default function Home() {
   const [copied, setCopied] = useState(false)

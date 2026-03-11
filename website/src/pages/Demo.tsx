@@ -83,7 +83,7 @@ export default function Demo() {
 
     try {
       const z = await import('zod')
-      const { guard } = await import('reforge')
+      const { guard } = await import('reforge-ai')
 
       const schemaFn = new Function('z', `return ${schema}`)
       const zodSchema = schemaFn(z)

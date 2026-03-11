@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      'reforge': path.resolve(__dirname, '../src'),
+      'reforge-ai': path.resolve(__dirname, '../src'),
     },
   },
 })

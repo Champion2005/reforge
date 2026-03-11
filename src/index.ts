@@ -8,7 +8,7 @@
  *
  * ```ts
  * import { z } from 'zod';
- * import { guard } from 'reforge';
+ * import { guard } from 'reforge-ai';
  *
  * const UserSchema = z.object({
  *   name: z.string(),

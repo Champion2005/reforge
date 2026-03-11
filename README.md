@@ -2,7 +2,7 @@
 
 **Raw LLM output reforged into clean data.**
 
-[![npm version](https://img.shields.io/npm/v/reforge.svg)](https://www.npmjs.com/package/reforge)
+[![npm version](https://img.shields.io/npm/v/reforge-ai.svg)](https://www.npmjs.com/package/reforge-ai)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6.svg)](https://www.typescriptlang.org)
 
@@ -23,7 +23,7 @@ Network retries to providers (OpenAI, Anthropic, etc.) cost **1-3 seconds** and 
 
 ## The Solution
 
-`reforge` is a **zero-dependency** TypeScript library that sits between the LLM output and your application:
+`reforge-ai` is a **zero-dependency** TypeScript library that sits between the LLM output and your application:
 
 - **Natively repairs** syntactic JSON errors in **microseconds**
 - **Validates** against your Zod schema with automatic type coercion
@@ -33,24 +33,24 @@ Network retries to providers (OpenAI, Anthropic, etc.) cost **1-3 seconds** and 
 ## Installation
 
 ```bash
-npm install reforge zod
+npm install reforge-ai zod
 ```
 
 ```bash
-pnpm add reforge zod
+pnpm add reforge-ai zod
 ```
 
 ```bash
-yarn add reforge zod
+yarn add reforge-ai zod
 ```
 
-> `zod` is an optional peer dependency. It's required for schema validation but `reforge` has **zero runtime dependencies**.
+> `zod` is an optional peer dependency. It's required for schema validation but `reforge-ai` has **zero runtime dependencies**.
 
 ## Quick Start
 
 ```typescript
 import { z } from "zod";
-import { guard } from "reforge";
+import { guard } from "reforge-ai";
 
 const UserSchema = z.object({
   name: z.string(),
@@ -160,7 +160,7 @@ type TelemetryData = {
 ```typescript
 import OpenAI from "openai";
 import { z } from "zod";
-import { guard } from "reforge";
+import { guard } from "reforge-ai";
 
 const client = new OpenAI();
 
@@ -204,7 +204,7 @@ async function getRecipe(prompt: string) {
 ```typescript
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
-import { guard } from "reforge";
+import { guard } from "reforge-ai";
 
 const client = new Anthropic();
 
@@ -241,9 +241,9 @@ async function getSummary(text: string) {
 ```typescript
 // app/api/parse/route.ts
 import { z } from "zod";
-import { guard } from "reforge";
+import { guard } from "reforge-ai";
 
-export const runtime = "edge";
+export const runtime= "edge";
 
 const PayloadSchema = z.object({
   action: z.string(),

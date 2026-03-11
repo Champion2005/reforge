@@ -1,12 +1,12 @@
 import CodeBlock from '../components/CodeBlock'
 import { BookOpen, Download, Wrench, Shield, Zap, RotateCcw } from 'lucide-react'
 
-const installCode = `npm install reforge zod`
+const installCode = `npm install reforge-ai zod`
 
 const quickStartCode = `import { z } from 'zod';
-import { guard } from 'reforge';
+import { guard } from 'reforge-ai';
 
-const UserSchema = z.object({
+const UserSchema= z.object({
   name: z.string(),
   age:  z.number(),
 });
@@ -23,9 +23,9 @@ if (result.success) {
 
 const openaiCode = `import OpenAI from 'openai';
 import { z } from 'zod';
-import { guard } from 'reforge';
+import { guard } from 'reforge-ai';
 
-const openai = new OpenAI();
+const openai= new OpenAI();
 
 const ProductSchema = z.object({
   name:  z.string(),
@@ -61,9 +61,9 @@ async function getProduct(prompt: string) {
 
 const anthropicCode = `import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
-import { guard } from 'reforge';
+import { guard } from 'reforge-ai';
 
-const client = new Anthropic();
+const client= new Anthropic();
 
 const EventSchema = z.object({
   title: z.string(),
