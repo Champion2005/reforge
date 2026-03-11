@@ -1,9 +1,9 @@
 ---
-description: High-level development guidelines for SteelGuard. Captures core principles, non-negotiable constraints, and security guardrails.
+description: High-level development guidelines for Reforge. Captures core principles, non-negotiable constraints, and security guardrails.
 applyTo: **
 ---
 
-# SteelGuard Development Guidelines
+# Reforge Development Guidelines
 
 ## Non-Negotiable Constraints
 

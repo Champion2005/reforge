@@ -3,13 +3,13 @@ description: This file describes the master plan and guidelines for the project.
 applyTo: **
 ---
 
-# SteelGuard Master Specification
+# Reforge Master Specification
 
 ## 1. Project Overview & Product Thesis
 
-**Name:** steelguard-ts
+**Name:** reforge
 
-**Tagline:** Zero-latency deterministic validation and native JSON repair for GenAI and LLM applications.
+**Tagline:** Raw LLM output reforged into clean data.
 
 **The Problem:** LLMs are probabilistic and frequently output malformed JSON (markdown wrappers, trailing commas, unquoted keys, truncated outputs). Network retries to providers (OpenAI, Anthropic) take 1-3 seconds and cost money.
 
@@ -17,7 +17,7 @@ applyTo: **
 
 ---
 
-## 2. The SDK (steelguard-ts)
+## 2. The SDK (reforge)
 
 ### 2.1 Core Constraints
 
@@ -45,7 +45,7 @@ Once structurally valid, the object must match the business logic.
 
 ### 2.4 Feature 3: The Provider-Agnostic Retry Generator
 
-If semantic validation completely fails (e.g., a required key is missing), SteelGuard does not make a network request.
+If semantic validation completely fails (e.g., a required key is missing), Reforge does not make a network request.
 
 - It generates a highly optimized retryPrompt string.
 - **Format:** "Your previous response failed validation. Errors: [Path: /user/age, Expected: Number]. Return ONLY valid JSON matching the schema." Ensure Zod issues are mapped and flattened into this concise string format to save LLM context tokens.
@@ -89,7 +89,7 @@ export type TelemetryData = { durationMs: number; status: 'clean' | 'repaired_na
 - **The "Proof" Interactive Demo:** A split-screen React component right on the homepage.
   - **Left Pane (Input):** A text editor where the user can type "dirty" LLM output. Include a dropdown or buttons with "Pre-loaded Examples" (e.g., 'Truncated Output', 'Markdown Wrapper', 'Trailing Commas') for quick testing.
   - **Right Pane (Output):** Real-time formatted JSON and the telemetry.durationMs displayed in green (e.g., "Repaired in 0.8ms").
-- **Architecture:** Because steelguard-ts is browser-compatible, this demo imports the actual library and runs it client-side. No API required.
+- **Architecture:** Because reforge is browser-compatible, this demo imports the actual library and runs it client-side. No API required.
 
 ### 3.3 Documentation Hub
 

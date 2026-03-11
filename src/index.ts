@@ -1,14 +1,14 @@
 /**
- * # steelguard-ts
+ * # Reforge
  *
- * Zero-latency deterministic validation and native JSON repair for Agentic
- * LLM applications.
+ * Raw LLM output reforged into clean data. Zero-latency deterministic
+ * validation and native JSON repair.
  *
  * ## Quick Start
  *
  * ```ts
  * import { z } from 'zod';
- * import { guard } from 'steelguard-ts';
+ * import { guard } from 'reforge';
  *
  * const UserSchema = z.object({
  *   name: z.string(),

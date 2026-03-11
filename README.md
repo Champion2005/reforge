@@ -1,8 +1,8 @@
-# steelguard-ts
+# Reforge
 
-**Zero-latency deterministic validation and native JSON repair for Agentic LLM applications.**
+**Raw LLM output reforged into clean data.**
 
-[![npm version](https://img.shields.io/npm/v/steelguard-ts.svg)](https://www.npmjs.com/package/steelguard-ts)
+[![npm version](https://img.shields.io/npm/v/reforge.svg)](https://www.npmjs.com/package/reforge)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6.svg)](https://www.typescriptlang.org)
 
@@ -23,7 +23,7 @@ Network retries to providers (OpenAI, Anthropic, etc.) cost **1-3 seconds** and 
 
 ## The Solution
 
-`steelguard-ts` is a **zero-dependency** TypeScript library that sits between the LLM output and your application:
+`reforge` is a **zero-dependency** TypeScript library that sits between the LLM output and your application:
 
 - **Natively repairs** syntactic JSON errors in **microseconds**
 - **Validates** against your Zod schema with automatic type coercion
@@ -33,24 +33,24 @@ Network retries to providers (OpenAI, Anthropic, etc.) cost **1-3 seconds** and 
 ## Installation
 
 ```bash
-npm install steelguard-ts zod
+npm install reforge zod
 ```
 
 ```bash
-pnpm add steelguard-ts zod
+pnpm add reforge zod
 ```
 
 ```bash
-yarn add steelguard-ts zod
+yarn add reforge zod
 ```
 
-> `zod` is an optional peer dependency. It's required for schema validation but `steelguard-ts` has **zero runtime dependencies**.
+> `zod` is an optional peer dependency. It's required for schema validation but `reforge` has **zero runtime dependencies**.
 
 ## Quick Start
 
 ```typescript
 import { z } from "zod";
-import { guard } from "steelguard-ts";
+import { guard } from "reforge";
 
 const UserSchema = z.object({
   name: z.string(),
@@ -93,7 +93,7 @@ The parser runs a sequence of heuristic passes to fix common LLM output issues:
 
 ### 2. Schema Validation (with Coercion)
 
-After parsing, the data is validated against your Zod schema. SteelGuard also attempts automatic coercion for common LLM type mismatches:
+After parsing, the data is validated against your Zod schema. Reforge also attempts automatic coercion for common LLM type mismatches:
 
 | LLM Output | Schema Expects | Coerced To |
 |---|---|---|
@@ -103,7 +103,7 @@ After parsing, the data is validated against your Zod schema. SteelGuard also at
 
 ### 3. Retry Prompt Generation
 
-If validation fails, SteelGuard generates a token-efficient prompt you can append to your LLM conversation:
+If validation fails, Reforge generates a token-efficient prompt you can append to your LLM conversation:
 
 ```
 Your previous response failed validation. Errors: [Path: /user/age, Expected: number, Received: string]. Return ONLY valid JSON matching the schema.
@@ -160,7 +160,7 @@ type TelemetryData = {
 ```typescript
 import OpenAI from "openai";
 import { z } from "zod";
-import { guard } from "steelguard-ts";
+import { guard } from "reforge";
 
 const client = new OpenAI();
 
@@ -204,7 +204,7 @@ async function getRecipe(prompt: string) {
 ```typescript
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
-import { guard } from "steelguard-ts";
+import { guard } from "reforge";
 
 const client = new Anthropic();
 
@@ -241,7 +241,7 @@ async function getSummary(text: string) {
 ```typescript
 // app/api/parse/route.ts
 import { z } from "zod";
-import { guard } from "steelguard-ts";
+import { guard } from "reforge";
 
 export const runtime = "edge";
 
@@ -267,7 +267,7 @@ export async function POST(request: Request) {
 
 ## Performance
 
-SteelGuard is designed for **< 5ms** end-to-end on a 2KB input. The entire pipeline is:
+Reforge is designed for **< 5ms** end-to-end on a 2KB input. The entire pipeline is:
 
 - **Synchronous** — no async, no network, no I/O
 - **Pure** — no global state mutation

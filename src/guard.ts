@@ -8,7 +8,7 @@ import { createTimer } from "./telemetry.js";
 /**
  * Validate and repair raw LLM output against a Zod schema.
  *
- * `guard()` is the single entry-point for SteelGuard. It runs a three-stage
+ * `guard()` is the single entry-point for Reforge. It runs a three-stage
  * pipeline — **parse → validate → report** — and returns a typed,
  * discriminated-union result that is safe to pattern-match on.
  *
@@ -35,7 +35,7 @@ import { createTimer } from "./telemetry.js";
  * @example
  * ```ts
  * import { z } from 'zod';
- * import { guard } from 'steelguard-ts';
+ * import { guard } from 'reforge';
  *
  * const UserSchema = z.object({
  *   name: z.string(),

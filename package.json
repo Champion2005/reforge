@@ -1,7 +1,7 @@
 {
-  "name": "steelguard-ts",
+  "name": "reforge",
   "version": "0.1.0",
-  "description": "Zero-latency deterministic validation and native JSON repair for Agentic LLM applications.",
+  "description": "Raw LLM output reforged into clean data. Zero-latency deterministic validation and native JSON repair.",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -35,11 +35,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Champion2005/steelguard-ts.git"
+    "url": "git+https://github.com/Champion2005/reforge.git"
   },
-  "homepage": "https://github.com/Champion2005/steelguard-ts#readme",
+  "homepage": "https://github.com/Champion2005/reforge#readme",
   "bugs": {
-    "url": "https://github.com/Champion2005/steelguard-ts/issues"
+    "url": "https://github.com/Champion2005/reforge/issues"
   },
   "keywords": [
     "json",

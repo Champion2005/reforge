@@ -4,7 +4,7 @@ import { applyHeuristics } from "./heuristics.js";
 import { balanceBrackets } from "./balance.js";
 
 /**
- * The Dirty Parser — SteelGuard's native JSON repair pipeline.
+ * The Dirty Parser — Reforge's native JSON repair pipeline.
  *
  * Accepts raw LLM output (which may be wrapped in markdown, contain trailing
  * commas, have unquoted keys, or be truncated) and attempts to produce a

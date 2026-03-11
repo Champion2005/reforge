@@ -1,7 +1,7 @@
 import type { ZodIssue } from "zod";
 
 // ---------------------------------------------------------------------------
-// Public Types — these form the contract between SteelGuard and its consumers.
+// Public Types — these form the contract between Reforge and its consumers.
 // ---------------------------------------------------------------------------
 
 /**
