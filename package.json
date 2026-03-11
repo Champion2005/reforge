@@ -1,0 +1,30 @@
+{
+  "name": "steelguard-ts",
+  "version": "0.0.1",
+  "description": "Zero-latency deterministic validation and native JSON repair for Agentic LLM applications.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "dev": "tsc --watch"
+  },
+  "keywords": [
+    "json",
+    "repair",
+    "validation",
+    "zod",
+    "llm",
+    "deterministic",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "zod": "^3.22.0"
+  }
+}
