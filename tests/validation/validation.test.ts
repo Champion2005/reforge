@@ -202,6 +202,83 @@ describe("validateWithSchema", () => {
     expect(r.success).toBe(true);
   });
 
+  it("handles non-string primitive through coercion (number stays number)", () => {
+    const schema = z.object({ count: z.number() });
+    const r = validateWithSchema({ count: 42 }, schema);
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.count).toBe(42);
+    }
+  });
+
+  it("coerces top-level boolean string", () => {
+    const schema = z.boolean();
+    const r = validateWithSchema("true", schema);
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data).toBe(true);
+    }
+  });
+
+  it("handles coercion for nullable number with string number", () => {
+    const schema = z.object({ value: z.number().nullable() });
+    const r = validateWithSchema({ value: "42" }, schema);
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.value).toBe(42);
+    }
+  });
+
+  it("handles deeply nested arrays of objects with coercion", () => {
+    const schema = z.object({
+      items: z.array(z.object({ active: z.boolean() })),
+    });
+    const r = validateWithSchema(
+      { items: [{ active: "true" }, { active: "false" }] },
+      schema,
+    );
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.items).toEqual([{ active: true }, { active: false }]);
+    }
+  });
+
+  it("handles empty string not coerced to number", () => {
+    const schema = z.object({ age: z.number() });
+    const r = validateWithSchema({ age: "" }, schema);
+    expect(r.success).toBe(false);
+  });
+
+  it("handles whitespace-only string not coerced to number", () => {
+    const schema = z.object({ age: z.number() });
+    const r = validateWithSchema({ age: "  " }, schema);
+    expect(r.success).toBe(false);
+  });
+
+  it("coerces values inside nullable object wrapper", () => {
+    // Triggers enqueueChildren with ZodNullable wrapping a ZodObject
+    const schema = z.object({
+      user: z.object({ age: z.number() }).nullable(),
+    });
+    const r = validateWithSchema({ user: { age: "30" } }, schema);
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.user!.age).toBe(30);
+    }
+  });
+
+  it("coerces values inside optional object wrapper", () => {
+    // Triggers enqueueChildren with ZodOptional wrapping a ZodObject
+    const schema = z.object({
+      user: z.object({ active: z.boolean() }).optional(),
+    });
+    const r = validateWithSchema({ user: { active: "true" } }, schema);
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.user!.active).toBe(true);
+    }
+  });
+
   // -----------------------------------------------------------------------
   // Validation failures
   // -----------------------------------------------------------------------

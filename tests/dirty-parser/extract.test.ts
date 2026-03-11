@@ -125,6 +125,20 @@ describe("extractJsonString", () => {
     expect(r.wasExtracted).toBe(false);
   });
 
+  it("handles unclosed fence with non-JSON content and no brackets in input", () => {
+    // Triggers the unclosed-fence path where content doesn't start with { or [
+    const input = "```json\nplain text without json";
+    const r = extractJsonString(input);
+    expect(r.wasExtracted).toBe(false);
+  });
+
+  it("handles closed fence with non-JSON content only", () => {
+    // Triggers the closed-fence non-JSON branch followed by null return
+    const input = "```json\nnot json\n```";
+    const r = extractJsonString(input);
+    expect(r.wasExtracted).toBe(false);
+  });
+
   it("skips closed fence with non-JSON then finds JSON via brackets", () => {
     const input = '```\nplain text\n```\nSome text {"key": 1} after';
     const r = extractJsonString(input);

@@ -1,0 +1,9 @@
+src/
+tests/
+coverage/
+.github/
+vitest.config.ts
+tsconfig.json
+tsup.config.ts
+*.test.ts
+.gitignore

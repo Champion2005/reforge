@@ -9,7 +9,7 @@ applyTo: **
 
 **Name:** steelguard-ts
 
-**Tagline:** Zero-latency deterministic validation and native JSON repair for Agentic LLM applications.
+**Tagline:** Zero-latency deterministic validation and native JSON repair for GenAI and LLM applications.
 
 **The Problem:** LLMs are probabilistic and frequently output malformed JSON (markdown wrappers, trailing commas, unquoted keys, truncated outputs). Network retries to providers (OpenAI, Anthropic) take 1-3 seconds and cost money.
 

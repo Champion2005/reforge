@@ -19,7 +19,9 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "sideEffects": false,
   "scripts": {
@@ -28,7 +30,16 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run test && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Champion2005/steelguard-ts.git"
+  },
+  "homepage": "https://github.com/Champion2005/steelguard-ts#readme",
+  "bugs": {
+    "url": "https://github.com/Champion2005/steelguard-ts/issues"
   },
   "keywords": [
     "json",
@@ -41,10 +52,17 @@
     "agentic",
     "openai",
     "anthropic",
-    "edge-runtime"
+    "edge-runtime",
+    "json-repair",
+    "llm-output",
+    "schema-validation",
+    "genai"
   ],
-  "author": "",
+  "author": "Champion2005",
   "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "peerDependencies": {
     "zod": "^3.22.0"
   },

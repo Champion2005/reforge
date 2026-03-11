@@ -141,6 +141,14 @@ describe("applyHeuristics", () => {
     expect(r.applied).toBe(true);
   });
 
+  it("escapes raw double-quote inside single-quoted value", () => {
+    // Single-quoted string containing a raw " char (not escaped)
+    // e.g. {'key': 'say "hello"'} → {"key": "say \"hello\""}
+    const r = applyHeuristics("{\'key\': \'say \"hello\"\'}");
+    expect(r.applied).toBe(true);
+    expect(JSON.parse(r.result)).toEqual({ key: 'say "hello"' });
+  });
+
   it("handles generic escape sequence inside single-quoted string", () => {
     // \n inside a single-quoted string should stay as \n
     const r = applyHeuristics("{'key': 'line\\none'}");
@@ -171,6 +179,20 @@ describe("applyHeuristics", () => {
     const r = applyHeuristics('{"key": "test\\\\"}');
     // Valid JSON with escaped backslash — should not change
     expect(r.result).toBeDefined();
+  });
+
+  it("handles trailing backslash at end of single-quoted input", () => {
+    // Single char after backslash missing — triggers trailing backslash branch
+    const input = "{'k': 'v\\";
+    const r = applyHeuristics(input);
+    expect(r.applied).toBe(true);
+  });
+
+  it("handles escape in double-quoted string preserves escape as-is", () => {
+    // Triggers the double-quote escape path (inDouble + backslash)
+    const input = '{"key": "line\\tvalue"}';
+    const r = applyHeuristics(input);
+    expect(r.result).toBe(input);
   });
 
   // -----------------------------------------------------------------------
