@@ -281,6 +281,39 @@ Reforge is designed for **< 5ms** end-to-end on a 2KB input. The entire pipeline
 - **Tree-shakeable** — ESM + CJS dual output via tsup
 - **Strict TypeScript** — full type safety with discriminated union results
 
+## Environment Compatibility
+
+| Runtime              | Status      | Notes          |
+|----------------------|-------------|----------------|
+| Node.js 18+         | ✅ Supported | CJS + ESM      |
+| Bun                  | ✅ Supported | Native ESM     |
+| Deno                 | ✅ Supported | Via npm: specifier |
+| Cloudflare Workers   | ✅ Supported | No Node APIs   |
+| Vercel Edge          | ✅ Supported | Edge-compatible |
+| Browser              | ✅ Supported | ESM, tree-shakeable |
+
+## Documentation
+
+Full documentation, interactive demo, and integration guides are available at **[reforge-ai-97558.web.app](https://reforge-ai-97558.web.app)**.
+
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
+
+- Setup instructions
+- Code standards
+- PR workflow
+- Test guidelines
+
+## Reporting Issues
+
+- **Bug reports:** [Open an issue](https://github.com/Champion2005/reforge/issues/new?template=bug_report.yml) with the raw input, schema, and unexpected result.
+- **Feature requests:** [Open an issue](https://github.com/Champion2005/reforge/issues/new?template=feature_request.yml) with the use case and proposed API.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes.
+
 ## License
 
 MIT

@@ -10,7 +10,7 @@ export default function Footer() {
         </div>
         <div className="flex gap-5 text-xs text-muted-foreground">
           <a
-            href="https://github.com/Champion2005/reforge-ai"
+            href="https://github.com/Champion2005/reforge"
             target="_blank"
             rel="noopener noreferrer"
             className="transition-colors duration-150 hover:text-foreground"
