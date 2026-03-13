@@ -52,6 +52,15 @@ describe("validateWithSchema", () => {
     expect(r.success).toBe(true);
   });
 
+  it("coerces enum values case-insensitively", () => {
+    const schema = z.object({ status: z.enum(["active", "inactive"]) });
+    const r = validateWithSchema({ status: "Active" }, schema);
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.status).toBe("active");
+    }
+  });
+
   // -----------------------------------------------------------------------
   // Coercion: string → boolean
   // -----------------------------------------------------------------------
@@ -96,6 +105,19 @@ describe("validateWithSchema", () => {
     }
   });
 
+  it("coerces ISO string to Date for z.date()", () => {
+    const schema = z.object({ createdAt: z.date() });
+    const r = validateWithSchema(
+      { createdAt: "2025-03-13T00:00:00.000Z" },
+      schema,
+    );
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.createdAt).toBeInstanceOf(Date);
+      expect(r.data.createdAt.toISOString()).toBe("2025-03-13T00:00:00.000Z");
+    }
+  });
+
   it("does NOT coerce non-numeric string to number", () => {
     const schema = z.object({ age: z.number() });
     const r = validateWithSchema({ age: "not_a_number" }, schema);
@@ -136,6 +158,20 @@ describe("validateWithSchema", () => {
     }
   });
 
+  it("keeps string 'null' for nullable string when other fields trigger coercion", () => {
+    const schema = z.object({
+      value: z.string().nullable(),
+      count: z.number(),
+    });
+
+    const r = validateWithSchema({ value: "null", count: "5" }, schema);
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.value).toBe("null");
+      expect(r.data.count).toBe(5);
+    }
+  });
+
   // -----------------------------------------------------------------------
   // Nested coercion
   // -----------------------------------------------------------------------
@@ -166,6 +202,59 @@ describe("validateWithSchema", () => {
     expect(r.success).toBe(true);
     if (r.success) {
       expect(r.data).toEqual([1, 2, 3]);
+    }
+  });
+
+  it("coerces tuple element values", () => {
+    const schema = z.tuple([z.number(), z.boolean(), z.string()]);
+    const r = validateWithSchema(["42", "true", "ok"], schema);
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data).toEqual([42, true, "ok"]);
+    }
+  });
+
+  it("coerces string values under union branches", () => {
+    const schema = z.object({
+      value: z.union([z.number(), z.boolean()]),
+    });
+
+    const r1 = validateWithSchema({ value: "42" }, schema);
+    expect(r1.success).toBe(true);
+    if (r1.success) {
+      expect(r1.data.value).toBe(42);
+    }
+
+    const r2 = validateWithSchema({ value: "false" }, schema);
+    expect(r2.success).toBe(true);
+    if (r2.success) {
+      expect(r2.data.value).toBe(false);
+    }
+  });
+
+  it("coerces values inside discriminated union branch", () => {
+    const schema = z.discriminatedUnion("kind", [
+      z.object({ kind: z.literal("a"), count: z.number() }),
+      z.object({ kind: z.literal("b"), active: z.boolean() }),
+    ]);
+
+    const r = validateWithSchema({ kind: "b", active: "true" }, schema);
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data).toEqual({ kind: "b", active: true });
+    }
+  });
+
+  it("coerces discriminated union numeric discriminator and branch values", () => {
+    const schema = z.discriminatedUnion("kind", [
+      z.object({ kind: z.literal(1), count: z.number() }),
+      z.object({ kind: z.literal(2), active: z.boolean() }),
+    ]);
+
+    const r = validateWithSchema({ kind: "2", active: "false" }, schema);
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data).toEqual({ kind: 2, active: false });
     }
   });
 
@@ -277,6 +366,39 @@ describe("validateWithSchema", () => {
     if (r.success) {
       expect(r.data.user!.active).toBe(true);
     }
+  });
+
+  it("coerces values for constructor-like keys without side effects", () => {
+    const schema = z.object({
+      user: z.object({
+        constructor: z.object({ count: z.number() }),
+      }),
+    });
+
+    const input = JSON.parse('{"user":{"constructor":{"count":"7"}}}');
+    const r = validateWithSchema(input, schema);
+
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.user.constructor.count).toBe(7);
+    }
+  });
+
+  it("handles __proto__ keys from JSON input without prototype pollution", () => {
+    const schema = z.object({
+      safe: z.number(),
+    }).passthrough();
+
+    const input = JSON.parse('{"safe":"1","__proto__":{"polluted":"true"}}');
+    const r = validateWithSchema(input, schema);
+
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.safe).toBe(1);
+    }
+
+    // Ensure coercion did not mutate global object prototype.
+    expect(({} as Record<string, unknown>).polluted).toBeUndefined();
   });
 
   // -----------------------------------------------------------------------
