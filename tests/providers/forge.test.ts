@@ -131,6 +131,8 @@ describe("forge()", () => {
       expect(result.telemetry.attempts).toBe(4); // 1 initial + 3 retries
       expect(result.telemetry.status).toBe("failed");
       expect(result.telemetry.totalDurationMs).toBeGreaterThanOrEqual(0);
+      expect(result.retryPrompt).toContain("return ONLY");
+      expect(result.telemetry.attemptDetails).toHaveLength(4);
     }
   });
 
@@ -291,7 +293,36 @@ describe("forge()", () => {
     if (result.success) {
       expect(result.telemetry.totalDurationMs).toBeGreaterThanOrEqual(0);
       expect(result.telemetry.durationMs).toBeGreaterThanOrEqual(0);
+      expect(result.telemetry.attemptDetails).toHaveLength(2);
+      expect(result.telemetry.attemptDetails[0]?.attempt).toBe(1);
+      expect(result.telemetry.attemptDetails[1]?.attempt).toBe(2);
     }
+  });
+
+  it("invokes onRetry callback for each retriable failure", async () => {
+    const provider = mockProvider([
+      "not json",
+      "still not json",
+      '{"name": "Nina", "age": 29}',
+    ]);
+
+    const onRetry = vi.fn();
+    const messages: Message[] = [{ role: "user", content: "Return a user." }];
+
+    const result = await forge(provider, messages, UserSchema, { onRetry });
+
+    expect(result.success).toBe(true);
+    expect(onRetry).toHaveBeenCalledTimes(2);
+    expect(onRetry).toHaveBeenNthCalledWith(
+      1,
+      1,
+      expect.objectContaining({ retryPrompt: expect.stringContaining("return ONLY") }),
+    );
+    expect(onRetry).toHaveBeenNthCalledWith(
+      2,
+      2,
+      expect.objectContaining({ retryPrompt: expect.stringContaining("return ONLY") }),
+    );
   });
 
   // -----------------------------------------------------------------------

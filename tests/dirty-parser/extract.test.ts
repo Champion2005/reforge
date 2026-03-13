@@ -56,6 +56,20 @@ describe("extractJsonString", () => {
     expect(r.extracted).toBe('{"key": "val"}');
   });
 
+  it("extracts JSON from ~~~json code fence", () => {
+    const input = '~~~json\n{"a": 1}\n~~~';
+    const r = extractJsonString(input);
+    expect(r.wasExtracted).toBe(true);
+    expect(r.extracted).toBe('{"a": 1}');
+  });
+
+  it("handles unclosed ~~~ code fence", () => {
+    const input = '~~~json\n{"key": "value"}\n';
+    const r = extractJsonString(input);
+    expect(r.wasExtracted).toBe(true);
+    expect(r.extracted).toBe('{"key": "value"}');
+  });
+
   it("extracts array from code fence", () => {
     const input = '```json\n[1, 2, 3]\n```';
     const r = extractJsonString(input);

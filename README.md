@@ -49,7 +49,7 @@ npm install reforge-ai zod @anthropic-ai/sdk
 npm install reforge-ai zod @google/generative-ai
 ```
 
-> `zod` is an optional peer dependency. Provider SDKs are optional peer dependencies — only install what you use.
+> `zod` is a required peer dependency. Provider SDKs are optional peer dependencies — only install what you use.
 
 ## Quick Start
 
@@ -267,7 +267,17 @@ End-to-end structured output: call LLM → guard() → auto-retry.
 | `provider` | `ReforgeProvider` | An adapter wrapping your LLM SDK |
 | `messages` | `Message[]` | Conversation messages to send |
 | `schema` | `ZodTypeAny` | The Zod schema the output must conform to |
-| `options` | `ForgeOptions` | Optional: `maxRetries` (default: 3), `providerOptions` |
+| `options` | `ForgeOptions` | Optional: `maxRetries` (default: 3), `providerOptions`, `onRetry` |
+
+`onRetry` is called after each failed attempt that will be retried:
+
+```typescript
+onRetry?: (attempt, failure) => {
+  // attempt is 1-based
+  // failure.errors are the zod issues from the failed guard() call
+  // failure.retryPrompt is the corrective prompt used for the next attempt
+}
+```
 
 **Returns:** `Promise<ForgeResult<T>>`:
 
@@ -284,6 +294,7 @@ End-to-end structured output: call LLM → guard() → auto-retry.
 {
   success: false;
   errors: ZodIssue[];
+  retryPrompt: string;
   telemetry: ForgeTelemetry;
 }
 
@@ -291,6 +302,11 @@ End-to-end structured output: call LLM → guard() → auto-retry.
 interface ForgeTelemetry extends TelemetryData {
   attempts: number;       // Total LLM calls made
   totalDurationMs: number; // Wall-clock time for entire forge() call
+  attemptDetails: Array<{
+    attempt: number;
+    durationMs: number;
+    status: "clean" | "repaired_natively" | "failed";
+  }>;
 }
 ```
 

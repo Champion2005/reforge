@@ -46,7 +46,7 @@ export function extractJsonString(input: string): ExtractionResult {
 // Internal helpers
 // ---------------------------------------------------------------------------
 
-const FENCE_OPEN = /```(?:json|JSON|js|javascript)?\s*\n?/;
+const FENCE_OPEN = /(```|~~~)(?:json|JSON|js|javascript)?\s*\n?/;
 
 /**
  * Attempt to pull content from the first markdown code fence that contains
@@ -59,8 +59,9 @@ function extractFromCodeFence(input: string): string | null {
     const openMatch = FENCE_OPEN.exec(input.slice(searchStart));
     if (!openMatch) return null;
 
+    const fence = openMatch[1] ?? "```";
     const contentStart = searchStart + openMatch.index + openMatch[0].length;
-    const closeIdx = input.indexOf("```", contentStart);
+    const closeIdx = input.indexOf(fence, contentStart);
     if (closeIdx === -1) {
       // Unclosed fence — treat everything after the open as content.
       const content = input.slice(contentStart).trim();
@@ -72,7 +73,7 @@ function extractFromCodeFence(input: string): string | null {
     if (looksLikeJson(content)) return content;
 
     // This fence didn't contain JSON — keep searching after it.
-    searchStart = closeIdx + 3;
+    searchStart = closeIdx + fence.length;
   }
 
   return null;

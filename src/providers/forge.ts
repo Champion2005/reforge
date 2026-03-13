@@ -5,6 +5,7 @@ import type {
   ForgeOptions,
   ForgeResult,
   ForgeTelemetry,
+  ForgeAttemptDetail,
 } from "./types.js";
 import { guard } from "../guard.js";
 import { createTimer } from "../telemetry.js";
@@ -45,7 +46,9 @@ export async function forge<T extends ZodTypeAny>(
   const conversation: Message[] = [...messages];
 
   let lastErrors: import("zod").ZodIssue[] = [];
+  let lastRetryPrompt = "Your previous response could not be parsed as JSON. The schema is still in your context — return ONLY valid JSON.";
   let lastTelemetry: import("../types.js").TelemetryData | undefined;
+  const attemptDetails: ForgeAttemptDetail[] = [];
 
   for (let attempt = 1; attempt <= totalAttempts; attempt++) {
     // Let provider errors bubble — they are the user's responsibility
@@ -53,6 +56,11 @@ export async function forge<T extends ZodTypeAny>(
 
     const result = guard(raw, schema);
     lastTelemetry = result.telemetry;
+    attemptDetails.push({
+      attempt,
+      durationMs: result.telemetry.durationMs,
+      status: result.telemetry.status,
+    });
 
     if (result.success) {
       const forgeTelemetry: ForgeTelemetry = {
@@ -60,6 +68,7 @@ export async function forge<T extends ZodTypeAny>(
         status: result.telemetry.status,
         attempts: attempt,
         totalDurationMs: timer.stop(),
+        attemptDetails,
       };
 
       return {
@@ -71,9 +80,15 @@ export async function forge<T extends ZodTypeAny>(
     }
 
     lastErrors = result.errors;
+    lastRetryPrompt = result.retryPrompt;
 
     // Don't append retry messages after the final attempt
     if (attempt < totalAttempts) {
+      options?.onRetry?.(attempt, {
+        errors: result.errors,
+        retryPrompt: result.retryPrompt,
+      });
+
       const assistantRetryContent = truncateAssistantRetryContent(raw);
 
       conversation.push(
@@ -89,11 +104,13 @@ export async function forge<T extends ZodTypeAny>(
     status: "failed",
     attempts: totalAttempts,
     totalDurationMs: timer.stop(),
+    attemptDetails,
   };
 
   return {
     success: false,
     errors: lastErrors,
+    retryPrompt: lastRetryPrompt,
     telemetry: forgeTelemetry,
   };
 }

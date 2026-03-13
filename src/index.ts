@@ -58,6 +58,7 @@ export type {
   ReforgeProvider,
   ForgeOptions,
   ForgeTelemetry,
+  ForgeAttemptDetail,
   ForgeResult,
   ForgeSuccess,
   ForgeFailure,

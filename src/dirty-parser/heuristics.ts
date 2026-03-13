@@ -39,6 +39,9 @@ export function applyHeuristics(input: string): HeuristicResult {
   if (unescaped !== current) {
     current = unescaped;
     anyApplied = true;
+    if (canParseJson(current)) {
+      return { result: current, applied: true };
+    }
   }
 
   // --- Pass 2: Fix single-quoted strings → double-quoted ---
@@ -46,6 +49,9 @@ export function applyHeuristics(input: string): HeuristicResult {
   if (dqResult !== current) {
     current = dqResult;
     anyApplied = true;
+    if (canParseJson(current)) {
+      return { result: current, applied: true };
+    }
   }
 
   // --- Pass 3: Strip JS-style comments ---
@@ -53,6 +59,9 @@ export function applyHeuristics(input: string): HeuristicResult {
   if (commentResult !== current) {
     current = commentResult;
     anyApplied = true;
+    if (canParseJson(current)) {
+      return { result: current, applied: true };
+    }
   }
 
   // --- Pass 4: Normalize Python literals ---
@@ -60,6 +69,9 @@ export function applyHeuristics(input: string): HeuristicResult {
   if (pyResult !== current) {
     current = pyResult;
     anyApplied = true;
+    if (canParseJson(current)) {
+      return { result: current, applied: true };
+    }
   }
 
   // --- Pass 5: Fix unquoted keys ---
@@ -67,6 +79,9 @@ export function applyHeuristics(input: string): HeuristicResult {
   if (uqResult !== current) {
     current = uqResult;
     anyApplied = true;
+    if (canParseJson(current)) {
+      return { result: current, applied: true };
+    }
   }
 
   // --- Pass 6: Strip trailing commas ---
@@ -265,21 +280,24 @@ function fixSingleQuotes(input: string): string {
   const chars: string[] = [];
   let inDouble = false;
   let inSingle = false;
+  let inBacktick = false;
 
   for (let i = 0; i < input.length; i++) {
     const ch = input[i]!;
 
     // Handle escape sequences inside strings.
-    if ((inDouble || inSingle) && ch === "\\") {
+    if ((inDouble || inSingle || inBacktick) && ch === "\\") {
       if (i + 1 < input.length) {
         i++;
         const next = input[i]!;
         // Inside a single-quote string being converted to double-quote,
         // we need to escape any internal double-quotes and unescape escaped single-quotes.
-        if (inSingle) {
+        if (inSingle || inBacktick) {
           if (next === "'") {
             // Unescape \' → ' (no backslash needed inside double-quoted string).
             chars.push("'");
+          } else if (next === "`") {
+            chars.push("`");
           } else if (next === '"') {
             // Escape double-quote that was inside the single-quoted string.
             chars.push('\\"');
@@ -320,6 +338,20 @@ function fixSingleQuotes(input: string): string {
       continue;
     }
 
+    if (inBacktick) {
+      if (ch === "`") {
+        inBacktick = false;
+        chars.push('"');
+        continue;
+      }
+      if (ch === '"') {
+        chars.push('\\"');
+        continue;
+      }
+      chars.push(ch);
+      continue;
+    }
+
     // Not inside any string.
     if (ch === '"') {
       inDouble = true;
@@ -327,6 +359,9 @@ function fixSingleQuotes(input: string): string {
     } else if (ch === "'") {
       inSingle = true;
       chars.push('"'); // Open single-quote → emit double-quote.
+    } else if (ch === "`") {
+      inBacktick = true;
+      chars.push('"'); // Open backtick-quote → emit double-quote.
     } else {
       chars.push(ch);
     }
@@ -482,4 +517,13 @@ function fixTrailingCommas(input: string): string {
   }
 
   return chars.join("");
+}
+
+function canParseJson(input: string): boolean {
+  try {
+    JSON.parse(input);
+    return true;
+  } catch {
+    return false;
+  }
 }

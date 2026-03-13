@@ -44,6 +44,14 @@ export interface ForgeOptions {
   maxRetries?: number;
   /** Options passed through to the provider on every call. */
   providerOptions?: ProviderCallOptions;
+  /** Callback invoked after a failed attempt that will be retried. */
+  onRetry?: (attempt: number, failure: { errors: ZodIssue[]; retryPrompt: string }) => void;
+}
+
+export interface ForgeAttemptDetail {
+  attempt: number;
+  durationMs: number;
+  status: "clean" | "repaired_natively" | "failed";
 }
 
 /**
@@ -55,6 +63,8 @@ export interface ForgeTelemetry extends TelemetryData {
   attempts: number;
   /** Wall-clock time across all attempts (including provider latency). */
   totalDurationMs: number;
+  /** Per-attempt guard telemetry snapshots. */
+  attemptDetails: ForgeAttemptDetail[];
 }
 
 /**
@@ -74,6 +84,7 @@ export interface ForgeSuccess<T> {
 export interface ForgeFailure {
   success: false;
   errors: ZodIssue[];
+  retryPrompt: string;
   telemetry: ForgeTelemetry;
 }
 

@@ -115,6 +115,12 @@ describe("applyHeuristics", () => {
     expect(r.result).toBe('{"key": "value"}');
   });
 
+  it("converts backtick-quoted strings to double-quoted", () => {
+    const r = applyHeuristics('{`key`: `value`}');
+    expect(r.applied).toBe(true);
+    expect(r.result).toBe('{"key": "value"}');
+  });
+
   it("handles mixed single and double quotes", () => {
     const r = applyHeuristics("{\"name\": 'Alice'}");
     expect(r.applied).toBe(true);
