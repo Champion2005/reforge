@@ -7,9 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-
-- No package changes yet.
+No unreleased package changes.
 
 ## [0.2.1] - 2026-03-13
 
@@ -31,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Parse-failure reporting consistency** — Parse failures now consistently surface a structured custom parse error in `guard()` failure paths, including non-string runtime input.
 - **Coercion clone hardening** — Object cloning in validation coercion now uses a safer plain-object clone strategy to avoid prototype pollution edge cases.
 
-## [0.2.0] - 2026-03-15
+## [0.2.0] - 2026-03-12
 
 ### Added
 
@@ -47,8 +45,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Package exports now include four entry points (core + three adapters).
-- Provider SDKs (`openai`, `@anthropic-ai/sdk`, `@google/generative-ai`) added as optional peer dependencies.
+- **Package exports expanded** — Exports now include four entry points (core + three adapters).
+- **Provider peer dependencies updated** — `openai`, `@anthropic-ai/sdk`, and `@google/generative-ai` are listed as optional peer dependencies.
 
 ## [0.1.1] - 2026-03-11
 
@@ -60,14 +58,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- `generateRetryPrompt([])` (parse failure path) previously returned a generic message with no details. It now returns an actionable message with the raw offending snippet.
+- **`generateRetryPrompt([])` parse-failure path** — Previously returned a generic message with no details; now returns an actionable message that includes the raw offending snippet.
 
 ## [0.1.0] - 2026-03-11
 
 ### Added
 
 - **`guard()` function** — Main entry-point that parses, repairs, validates, and returns typed results.
-- **Dirty Parser pipeline** — Multi-stage JSON repair engine:
+- **Dirty parser pipeline** — Multi-stage JSON repair engine:
   - Markdown fence extraction (` ```json ` blocks)
   - Conversational wrapper removal ("Here is the data: {...}")
   - Trailing comma removal
@@ -81,9 +79,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - String `"null"` → null
 - **Retry prompt generation** — Token-efficient error messages for LLM re-queries.
 - **Telemetry** — Every result includes `{ durationMs, status }` for observability.
-- **Full TypeScript support** — Discriminated union result types, generic inference from Zod schemas.
+- **TypeScript support** — Discriminated union result types with generic inference from Zod schemas.
 - **Dual CJS/ESM output** — Built with tsup, tree-shakeable, source maps included.
-- **Zero runtime dependencies** — Only Zod as an optional peer dependency.
+- **Zero runtime dependencies** — Only `zod` as an optional peer dependency.
 - **Environment agnostic** — No Node-specific APIs. Works in Node.js, Bun, Deno, Cloudflare Workers, Vercel Edge, and browsers.
 
 [Unreleased]: https://github.com/Champion2005/reforge/compare/v0.2.1...HEAD

@@ -34,6 +34,7 @@ import DocsEnvironments from './pages/docs/environments'
 import DocsTroubleshooting from './pages/docs/troubleshooting'
 import DocsFaq from './pages/docs/faq'
 import DocsReportingIssues from './pages/docs/reporting-issues'
+import DocsChangelog from './pages/docs/changelog'
 
 export default function App() {
   return (
@@ -66,6 +67,7 @@ export default function App() {
           <Route path="/docs/troubleshooting" element={<DocsLayout><DocsTroubleshooting /></DocsLayout>} />
           <Route path="/docs/faq" element={<DocsLayout><DocsFaq /></DocsLayout>} />
           <Route path="/docs/reporting-issues" element={<DocsLayout><DocsReportingIssues /></DocsLayout>} />
+          <Route path="/docs/changelog" element={<DocsLayout><DocsChangelog /></DocsLayout>} />
 
           {/* Blog */}
           <Route path="/blog" element={<Blog />} />

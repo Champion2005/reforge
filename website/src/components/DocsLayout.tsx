@@ -11,6 +11,7 @@ import {
   RotateCcw,
   BarChart3,
   Bug,
+  ScrollText,
   HelpCircle,
   Menu,
   X,
@@ -68,6 +69,7 @@ const docNav: DocCategory[] = [
       { slug: 'troubleshooting', label: 'Troubleshooting', icon: Bug },
       { slug: 'faq', label: 'FAQ', icon: HelpCircle },
       { slug: 'reporting-issues', label: 'Reporting Issues', icon: Bug },
+      { slug: 'changelog', label: 'Changelog', icon: ScrollText },
     ],
   },
 ]

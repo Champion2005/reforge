@@ -9,11 +9,17 @@ import path from 'path'
 export default defineConfig({
   plugins: [
     mdx({
+      include: /\.mdx$/,
       remarkPlugins: [remarkFrontmatter, remarkMdxFrontmatter],
     }),
     react(),
     tailwindcss(),
   ],
+  server: {
+    fs: {
+      allow: [path.resolve(__dirname, '..')],
+    },
+  },
   resolve: {
     alias: {
       'reforge-ai': path.resolve(__dirname, '../src'),
