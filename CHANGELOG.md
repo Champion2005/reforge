@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- No package changes yet.
+
+## [0.2.1] - 2026-03-13
+
+### Added
+
+- **Dirty parser heuristics expanded** — Added JavaScript comment stripping (`//`, `/* ... */`) and Python literal normalization (`True`/`False`/`None` → JSON literals), with string-context awareness to avoid mutating quoted values.
+- **Schema-aware coercion extended** — Added coercion support for `ZodDate`, case-insensitive `ZodEnum`, `ZodLiteral` primitive matching, `ZodTuple`, `ZodUnion`, and `ZodDiscriminatedUnion` traversal.
+- **`forge()` retry hooks and richer telemetry** — Added `onRetry` callback and per-attempt telemetry via `attemptDetails`.
+
+### Changed
+
+- **`forge()` retry safety hardened** — Retry assistant content is now truncated before being appended to the conversation to control token growth.
+- **`forge()` options normalization** — `maxRetries` is now defensively normalized (`NaN`/`Infinity`/negative values resolve to bounded non-negative behavior).
+- **Markdown extraction broadened** — JSON extraction now supports both backtick and tilde code fences (` ``` ` and `~~~`).
+
+### Fixed
+
+- **Bracket extraction robustness** — Improved mismatched-closer handling in bracket extraction to avoid incorrect early boundary selection in malformed wrappers.
+- **Parse-failure reporting consistency** — Parse failures now consistently surface a structured custom parse error in `guard()` failure paths, including non-string runtime input.
+- **Coercion clone hardening** — Object cloning in validation coercion now uses a safer plain-object clone strategy to avoid prototype pollution edge cases.
+
 ## [0.2.0] - 2026-03-15
 
 ### Added
@@ -60,6 +86,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Zero runtime dependencies** — Only Zod as an optional peer dependency.
 - **Environment agnostic** — No Node-specific APIs. Works in Node.js, Bun, Deno, Cloudflare Workers, Vercel Edge, and browsers.
 
+[Unreleased]: https://github.com/Champion2005/reforge/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/Champion2005/reforge/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/Champion2005/reforge/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/Champion2005/reforge/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Champion2005/reforge/releases/tag/v0.1.0
