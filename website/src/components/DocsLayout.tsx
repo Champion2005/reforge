@@ -14,6 +14,8 @@ import {
   HelpCircle,
   Menu,
   X,
+  ArrowLeft,
+  ArrowRight,
 } from 'lucide-react'
 
 interface DocSection {
@@ -77,6 +79,10 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   const currentSlug = location.pathname.replace('/docs/', '').replace('/docs', '')
+  const allDocs = docNav.flatMap((category) => category.items)
+  const activeIndex = allDocs.findIndex((item) => item.slug === (currentSlug || 'introduction'))
+  const prevDoc = activeIndex > 0 ? allDocs[activeIndex - 1] : null
+  const nextDoc = activeIndex >= 0 && activeIndex < allDocs.length - 1 ? allDocs[activeIndex + 1] : null
 
   const sidebar = (
     <nav className="space-y-6">
@@ -154,7 +160,43 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
         )}
 
         {/* Content */}
-        <div className="min-w-0">{children}</div>
+        <div className="min-w-0">
+          {children}
+
+          <div className="mt-10 border-t border-border/40 pt-6">
+            <div className="grid gap-3 sm:grid-cols-2">
+              {prevDoc ? (
+                <Link
+                  to={`/docs/${prevDoc.slug}`}
+                  className="group flex items-center gap-3 rounded-xl border border-border/60 bg-card/30 px-4 py-3 text-sm transition-colors hover:border-border hover:bg-card"
+                >
+                  <ArrowLeft className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
+                  <div className="min-w-0">
+                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground/70">Previous</p>
+                    <p className="truncate font-medium text-foreground">{prevDoc.label}</p>
+                  </div>
+                </Link>
+              ) : (
+                <div />
+              )}
+
+              {nextDoc ? (
+                <Link
+                  to={`/docs/${nextDoc.slug}`}
+                  className="group flex items-center justify-end gap-3 rounded-xl border border-border/60 bg-card/30 px-4 py-3 text-sm transition-colors hover:border-border hover:bg-card"
+                >
+                  <div className="min-w-0 text-right">
+                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground/70">Next</p>
+                    <p className="truncate font-medium text-foreground">{nextDoc.label}</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
+                </Link>
+              ) : (
+                <div />
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   )

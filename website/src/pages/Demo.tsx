@@ -141,10 +141,10 @@ export default function Demo() {
         </div>
 
         {/* Split panes */}
-        <div className="grid gap-5 lg:grid-cols-2">
+        <div className="grid gap-5 lg:grid-cols-2 lg:items-stretch">
           {/* Input side */}
-          <div className="flex flex-col gap-4">
-            <div>
+          <div className="flex flex-col gap-4 lg:h-112">
+            <div className="flex flex-1 flex-col min-h-0">
               <label className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                 LLM Output
@@ -153,11 +153,11 @@ export default function Demo() {
                 value={input}
                 onChange={(e) => handleInputChange(e.target.value)}
                 spellCheck={false}
-                className="h-[30vh] min-h-40 max-h-[40vh] w-full resize-none overflow-y-auto rounded-xl border border-border/60 bg-[oklch(0.13_0.005_286)] p-4 font-mono text-[13px] leading-6 text-foreground/85 placeholder:text-muted-foreground/40 transition-colors duration-150 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/30"
+                className="h-56 w-full resize-none overflow-y-auto rounded-xl border border-border/60 bg-[oklch(0.13_0.005_286)] p-4 font-mono text-[13px] leading-6 text-foreground/85 placeholder:text-muted-foreground/40 transition-colors duration-150 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/30 lg:flex-1 lg:min-h-0"
                 placeholder="Paste your LLM output here..."
               />
             </div>
-            <div>
+            <div className="flex flex-1 flex-col min-h-0">
               <label className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent" />
                 Zod Schema
@@ -166,19 +166,19 @@ export default function Demo() {
                 value={schema}
                 onChange={(e) => handleSchemaChange(e.target.value)}
                 spellCheck={false}
-                className="h-[18vh] min-h-30 max-h-[25vh] w-full resize-none overflow-y-auto rounded-xl border border-border/60 bg-[oklch(0.13_0.005_286)] p-4 font-mono text-[13px] leading-6 text-foreground/85 placeholder:text-muted-foreground/40 transition-colors duration-150 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/30"
+                className="h-48 w-full resize-none overflow-y-auto rounded-xl border border-border/60 bg-[oklch(0.13_0.005_286)] p-4 font-mono text-[13px] leading-6 text-foreground/85 placeholder:text-muted-foreground/40 transition-colors duration-150 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/30 lg:flex-1 lg:min-h-0"
                 placeholder="z.object({ ... })"
               />
             </div>
           </div>
 
           {/* Output side — single result box */}
-          <div>
+          <div className="flex flex-col lg:h-112">
             <label className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-success" />
               Result
             </label>
-            <div className="h-[calc(30vh+18vh+1.5rem)] min-h-75 max-h-[calc(40vh+25vh+1.5rem)] overflow-y-auto rounded-xl border border-border/60 bg-[oklch(0.13_0.005_286)] p-5">
+            <div className="h-112 overflow-y-auto rounded-xl border border-border/60 bg-[oklch(0.13_0.005_286)] p-5 lg:flex-1 lg:min-h-0">
               {error && (
                 <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3.5">
                   <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
@@ -187,7 +187,7 @@ export default function Demo() {
               )}
 
               {!result && !error && (
-                <div className="flex h-full min-h-65 flex-col items-center justify-center text-center">
+                <div className="flex h-full min-h-64 flex-col items-center justify-center text-center">
                   <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
                     <Play className="h-5 w-5 text-muted-foreground" />
                   </div>
