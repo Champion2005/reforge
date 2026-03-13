@@ -1,7 +1,7 @@
 /**
  * # Reforge
  *
- * Raw LLM output reforged into clean data. Zero-latency deterministic
+ * Raw LLM output reforged into clean data. Low-latency deterministic
  * validation and native JSON repair.
  *
  * ## Quick Start
@@ -23,7 +23,7 @@
  * if (result.success) {
  *   console.log(result.data);       // { name: "Alice", age: 30 }
  *   console.log(result.isRepaired); // true
- *   console.log(result.telemetry);  // { durationMs: 0.4, status: "repaired_natively" }
+ *   console.log(result.telemetry);  // { durationMs: 0.55, status: "repaired_natively" }
  * } else {
  *   // Append result.retryPrompt to your LLM message array for a corrective retry.
  *   console.log(result.retryPrompt);

@@ -100,7 +100,7 @@ export default function EnforceJsonSchemasOpenAI() {
       <Paragraph>
         This guide shows how to build a bulletproof JSON extraction pipeline using
         Zod schemas and Reforge — a zero-dependency TypeScript library that repairs
-        malformed LLM output deterministically in microseconds.
+        malformed LLM output deterministically in under 5ms local timings.
       </Paragraph>
 
       <Heading>The Problem with LLM JSON Output</Heading>
@@ -152,7 +152,7 @@ export default function EnforceJsonSchemasOpenAI() {
 
       <Callout>
         <strong className="text-foreground">Performance note:</strong> The{' '}
-        <InlineCode>guard()</InlineCode> call itself takes under 5ms for typical
+        <InlineCode>guard()</InlineCode> call itself typically runs under 5ms for
         LLM outputs. The expensive part is always the network round-trip to the
         model. Reforge eliminates unnecessary round-trips by fixing issues locally.
       </Callout>

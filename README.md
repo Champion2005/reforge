@@ -19,13 +19,13 @@ LLMs are probabilistic and frequently output malformed JSON:
 - **Truncated outputs** — `{"items": [1, 2, 3` (hit `max_tokens`)
 - **Escaped-quote anomalies** — `{\"key\": \"value\"}`
 
-Network retries to providers (OpenAI, Anthropic, etc.) cost **1-3 seconds** and real money. Most of these failures are trivially fixable.
+Network retries to providers (OpenAI, Anthropic, etc.) cost **5000ms+** and real money. Most of these failures are trivially fixable.
 
 ## The Solution
 
 `reforge-ai` is a **zero-dependency** TypeScript library that sits between the LLM output and your application:
 
-- **Natively repairs** syntactic JSON errors in **microseconds**
+- **Natively repairs** syntactic JSON errors in **sub-5ms local timings**
 - **Validates** against your Zod schema with automatic type coercion
 - **Generates token-efficient retry prompts** when repair isn't enough
 - Works everywhere: **Node.js, Bun, Deno, Cloudflare Workers, Vercel Edge, Browsers**
@@ -38,6 +38,16 @@ Network retries to providers (OpenAI, Anthropic, etc.) cost **1-3 seconds** and 
 - **Built-in redaction**: redact sensitive paths/patterns from retry contexts.
 - **Debug artifacts**: inspect extracted/repaired JSON and applied repair passes when needed.
 - **Advanced forge orchestration**: retry policies, structured lifecycle events, and `forgeWithFallback()` provider failover.
+
+### Timing Snapshot (Measured)
+
+From `timing-summary-2026-03-13.md`:
+
+- `guard()` samples: `11`
+- Min: `0.1442ms`
+- Max: `2.5365ms`
+- Average: `0.5536ms`
+- Under `5ms`: `11/11`
 
 ## Installation
 
@@ -79,7 +89,7 @@ const result = guard(raw, UserSchema);
 if (result.success) {
   console.log(result.data);       // { name: "Alice", age: 30 }
   console.log(result.isRepaired); // true
-  console.log(result.telemetry);  // { durationMs: 0.4, status: "repaired_natively" }
+  console.log(result.telemetry);  // { durationMs: 0.55, status: "repaired_natively" }
 } else {
   // Append result.retryPrompt to your LLM message array
   console.log(result.retryPrompt);
@@ -136,7 +146,7 @@ if (result.success) {
   console.log(result.data);
   // → [{ name: "Red", hex: "#FF0000" }, ...]
   console.log(result.telemetry);
-  // → { durationMs: 1.2, status: "clean", attempts: 1, totalDurationMs: 845 }
+  // → { durationMs: 0.55, status: "repaired_natively", attempts: 1, totalDurationMs: 6132 }
 }
 ```
 

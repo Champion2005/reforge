@@ -47,7 +47,7 @@ const result = guard(raw, User);
 if (result.success) {
   console.log(result.data);       // { name: "Alice", age: 30 }
   console.log(result.isRepaired); // true
-  console.log(result.telemetry);  // { durationMs: 0.4, status: "repaired_natively" }
+  console.log(result.telemetry);  // { durationMs: ~1, status: "repaired_natively" }
 }`
 
 const forgeCode = `import { z } from 'zod';
@@ -131,7 +131,7 @@ export default function Home() {
 
           <p className="mx-auto mt-6 max-w-[660px] text-base leading-relaxed text-muted-foreground sm:text-lg">
             Raw LLM output reforged into clean data. Native JSON repair in
-            microseconds, Zod validation, and automatic retries for any LLM
+            under 5ms local timings, Zod validation, and automatic retries for any LLM
             provider — with a single unified API.
           </p>
 
@@ -225,7 +225,7 @@ export default function Home() {
               <p className="mt-4 max-w-lg text-muted-foreground leading-relaxed">
                 LLMs produce trailing commas, unquoted keys, markdown wrappers,
                 single quotes, and truncated outputs. Reforge fixes all of these
-                deterministically in microseconds — no network round-trips.
+                deterministically in under 5ms local timings — no network round-trips.
               </p>
               <div className="mt-8 space-y-3">
                 {[
@@ -422,7 +422,8 @@ export default function Home() {
                 Sub-millisecond. Zero-dep core.
               </h2>
               <p className="mt-4 max-w-lg text-muted-foreground leading-relaxed">
-                guard() executes in under 5ms for 2KB inputs. Synchronous, pure,
+                guard() runs under 5ms on typical 2KB inputs with
+                typically sub-millisecond execution. Synchronous, pure,
                 never throws. No async, no I/O, no global state. Only Zod as an
                 required peer dependency.
               </p>
@@ -435,11 +436,11 @@ export default function Home() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/30 text-muted-foreground">
-                    <tr><td className="py-2.5">Clean JSON (fast path)</td><td className="py-2.5 text-success">&lt; 0.1ms</td></tr>
-                    <tr><td className="py-2.5">Markdown + parse</td><td className="py-2.5 text-success">&lt; 0.5ms</td></tr>
-                    <tr><td className="py-2.5">Full heuristic repair</td><td className="py-2.5 text-success">&lt; 2ms</td></tr>
-                    <tr><td className="py-2.5">Repair + Zod validation</td><td className="py-2.5 text-success">&lt; 5ms</td></tr>
-                    <tr><td className="py-2.5">LLM network retry</td><td className="py-2.5 text-destructive">1,000–3,000ms</td></tr>
+                    <tr><td className="py-2.5">Clean JSON (fast path)</td><td className="py-2.5 text-success">&lt;1ms</td></tr>
+                    <tr><td className="py-2.5">Markdown + parse</td><td className="py-2.5 text-success">&lt;1ms</td></tr>
+                    <tr><td className="py-2.5">Full heuristic repair</td><td className="py-2.5 text-success">1-3ms</td></tr>
+                    <tr><td className="py-2.5">Repair + Zod validation</td><td className="py-2.5 text-success">&lt;5ms</td></tr>
+                    <tr><td className="py-2.5">LLM network retry</td><td className="py-2.5 text-destructive">5000ms+</td></tr>
                   </tbody>
                 </table>
               </div>

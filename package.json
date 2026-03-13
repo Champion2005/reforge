@@ -1,7 +1,7 @@
 {
   "name": "reforge-ai",
-  "version": "0.2.1",
-  "description": "Raw LLM output reforged into clean data. Zero-latency deterministic validation and native JSON repair.",
+  "version": "0.3.0",
+  "description": "Raw LLM output reforged into clean data. Low-latency deterministic validation and native JSON repair.",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -107,10 +107,10 @@
     "node": ">=16.0.0"
   },
   "peerDependencies": {
-    "zod": "^3.22.0",
-    "openai": "^4.0.0",
     "@anthropic-ai/sdk": "^0.30.0",
-    "@google/generative-ai": "^0.21.0"
+    "@google/generative-ai": "^0.21.0",
+    "openai": "^4.0.0",
+    "zod": "^3.22.0"
   },
   "peerDependenciesMeta": {
     "openai": {
@@ -124,10 +124,10 @@
     }
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^3.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.0.0",
     "vitest": "^3.0.0",
-    "@vitest/coverage-v8": "^3.0.0",
     "zod": "^3.22.0"
   }
 }

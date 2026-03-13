@@ -11,11 +11,60 @@ interface OpenAICompatibleClient {
     completions: {
       create(params: Record<string, unknown>): Promise<{
         choices: Array<{
-          message?: { content?: string | null };
+          message?: {
+            content?: unknown;
+            refusal?: unknown;
+          };
+          text?: unknown;
+          finish_reason?: unknown;
         }>;
       }>;
     };
   };
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function extractTextFromUnknown(value: unknown): string | undefined {
+  if (isNonEmptyString(value)) {
+    return value;
+  }
+
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const parts: string[] = [];
+
+  for (const part of value) {
+    if (isNonEmptyString(part)) {
+      parts.push(part);
+      continue;
+    }
+
+    if (!part || typeof part !== "object") {
+      continue;
+    }
+
+    const maybeText = (part as { text?: unknown }).text;
+    if (isNonEmptyString(maybeText)) {
+      parts.push(maybeText);
+      continue;
+    }
+
+    const maybeContent = (part as { content?: unknown }).content;
+    if (isNonEmptyString(maybeContent)) {
+      parts.push(maybeContent);
+    }
+  }
+
+  if (parts.length === 0) {
+    return undefined;
+  }
+
+  return parts.join("\n");
 }
 
 /**
@@ -74,12 +123,31 @@ export function openaiCompatible(
       }
 
       const response = await client.chat.completions.create(params);
+      const choices = Array.isArray(response.choices)
+        ? response.choices
+        : [];
+      const firstChoice = choices[0];
+      const candidates: unknown[] = [
+        firstChoice?.message?.content,
+        firstChoice?.text,
+        firstChoice?.message?.refusal,
+      ];
 
-      const content = response.choices[0]?.message?.content;
-      if (!content) {
-        throw new Error("OpenAI-compatible provider returned an empty response");
+      for (const candidate of candidates) {
+        const text = extractTextFromUnknown(candidate);
+        if (text !== undefined) {
+          return text;
+        }
       }
-      return content;
+
+      const finishReason = firstChoice?.finish_reason;
+      const finishReasonInfo = isNonEmptyString(finishReason)
+        ? ` (finish_reason: ${finishReason})`
+        : "";
+
+      throw new Error(
+        `OpenAI-compatible provider returned an empty response${finishReasonInfo}`,
+      );
     },
   };
 }

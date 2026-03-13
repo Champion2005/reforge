@@ -105,7 +105,7 @@ export default function StructuredOutputPost() {
       </ul>
 
       <Paragraph>
-        Each of these breaks <InlineCode>JSON.parse()</InlineCode>, which means your application fails, and you need an expensive network retry. At 1-3 seconds per LLM call, those retries add up fast.
+        Each of these breaks <InlineCode>JSON.parse()</InlineCode>, which means your application fails, and you need an expensive network retry. At 5000ms+ per LLM call, those retries add up fast.
       </Paragraph>
 
       <Heading>The Manual Retry Loop Problem</Heading>
@@ -117,7 +117,7 @@ export default function StructuredOutputPost() {
       <BlogCodeBlock code={manualRetryLoop} />
 
       <Paragraph>
-        This approach has several issues. The retry message "That was invalid JSON. Try again" is vague — it doesn't tell the model <em>what</em> was wrong. It doesn't attempt local repair first (many issues like trailing commas can be fixed in microseconds without a network call). And you're writing this loop for every single LLM call in your application.
+        This approach has several issues. The retry message "That was invalid JSON. Try again" is vague — it doesn't tell the model <em>what</em> was wrong. It doesn't attempt local repair first (many issues like trailing commas can be fixed in under 5ms without a network call). And you're writing this loop for every single LLM call in your application.
       </Paragraph>
 
       <Heading>How forge() Works Under the Hood</Heading>
@@ -135,7 +135,7 @@ export default function StructuredOutputPost() {
       </ol>
 
       <Paragraph>
-        The key insight is step 2: most LLM output issues are syntactic, not semantic. A trailing comma doesn't need a 2-second network round-trip — it needs a microsecond string operation. Reforge handles these locally, and only retries when the data itself is wrong (missing fields, wrong types that can't be coerced).
+        The key insight is step 2: most LLM output issues are syntactic, not semantic. A trailing comma doesn't need a 2-second network round-trip — it needs a fast local string operation. Reforge handles these locally, and only retries when the data itself is wrong (missing fields, wrong types that can't be coerced).
       </Paragraph>
 
       <Heading>Works with Any Provider</Heading>

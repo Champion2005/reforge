@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-03-13
+
 ### Added
 
 - **Line-aware retry prompts** - `guard()` now supports `retryPrompt.mode = "line-aware"` to include only relevant line windows for parse/validation failures, with multi-issue block grouping and configurable context radius.
@@ -22,10 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`forge()` now forwards guard options** - Added `guardOptions` pass-through for consistent retry prompt behavior in provider orchestration flows.
 - **Dirty parser metadata surfaced internally** - Dirty parse pipeline now tracks applied repairs and likely parse line to improve retry context quality.
+- **Internal demo app relocation** - The independent validation/demo app has been moved to `.internal/independent-test-demo` to keep internal-only validation assets out of the public root.
+- **Timing wording simplified** - Package and docs timing examples now use simplified non-precise language while retaining the under-5ms local validation target.
 
 ### Fixed
 
 - **Retry prompt context quality** - Parse and validation retries can now target specific lines instead of broad snippets when line-aware mode is enabled.
+- **OpenAI-compatible adapter response extraction** - `openaiCompatible()` now handles additional OpenAI-compatible response shapes and no longer throws a `TypeError` when `choices` is missing; it returns a controlled empty-response error instead.
 
 ## [0.2.1] - 2026-03-13
 
@@ -102,7 +107,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Zero runtime dependencies** — Only `zod` as an optional peer dependency.
 - **Environment agnostic** — No Node-specific APIs. Works in Node.js, Bun, Deno, Cloudflare Workers, Vercel Edge, and browsers.
 
-[Unreleased]: https://github.com/Champion2005/reforge/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/Champion2005/reforge/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/Champion2005/reforge/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/Champion2005/reforge/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/Champion2005/reforge/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/Champion2005/reforge/compare/v0.1.0...v0.1.1

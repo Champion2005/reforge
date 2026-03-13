@@ -24,7 +24,7 @@ const result = guard(llmOutput, UserSchema);
 
 if (result.success) {
   console.log(result.data);       // typed as { name: string; age: number }
-  console.log(result.telemetry);  // { durationMs: 0.4, status: "repaired_natively" }
+  console.log(result.telemetry);  // { durationMs: ~1, status: "repaired_natively" }
 } else {
   // Append to your LLM message array for a corrective retry
   messages.push({ role: 'user', content: result.retryPrompt });
@@ -51,7 +51,7 @@ if (result.success) {
   console.log(result.data);
   // → [{ name: "Red", hex: "#FF0000" }, ...]
   console.log(result.telemetry);
-  // → { durationMs: 1.2, status: "clean", attempts: 1, totalDurationMs: 845 }
+  // → { durationMs: ~1, status: "clean", attempts: 1, totalDurationMs: ~1200 }
 }`
 
 const openaiForgeCode = `import { z } from 'zod';
@@ -323,7 +323,7 @@ export default function Docs() {
               <strong className="text-foreground">Reforge</strong> is a zero-dependency TypeScript library that sits between your LLM provider and your application. It solves a common problem: LLMs frequently output malformed JSON — markdown wrappers, trailing commas, unquoted keys, truncated outputs, and type mismatches.
             </p>
             <p className="text-muted-foreground leading-relaxed">
-              Instead of paying for expensive network retries (1-3 seconds each), Reforge repairs these issues <strong className="text-foreground">deterministically in microseconds</strong> on your side. When repair isn't enough, it generates a token-efficient retry prompt you can feed back to the model.
+              Instead of paying for expensive network retries (5000ms+ each), Reforge repairs these issues <strong className="text-foreground">deterministically in under 5ms local timings</strong> on your side. When repair isn't enough, it generates a token-efficient retry prompt you can feed back to the model.
             </p>
             <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
               <p className="text-sm font-semibold text-foreground mb-4">What Reforge does:</p>
@@ -662,7 +662,7 @@ Your previous response could not be parsed as JSON. The schema is still in your 
           <div id="performance" className="scroll-mt-24 space-y-5">
             <SectionHeader>Performance</SectionHeader>
             <p className="text-muted-foreground leading-relaxed">
-              Reforge is designed for <strong className="text-foreground">&lt; 5ms</strong> end-to-end on a 2KB input. The entire pipeline is:
+              Reforge is designed for <strong className="text-foreground">under 5ms</strong> local validation on typical 2KB outputs. The entire pipeline is:
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               {[
@@ -686,11 +686,11 @@ Your previous response could not be parsed as JSON. The schema is still in your 
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/30 text-muted-foreground">
-                  <tr><td className="py-2.5">Clean JSON (fast path)</td><td className="py-2.5">&lt; 0.1ms</td></tr>
-                  <tr><td className="py-2.5">Markdown extraction + parse</td><td className="py-2.5">&lt; 0.5ms</td></tr>
-                  <tr><td className="py-2.5">Full heuristic repair</td><td className="py-2.5">&lt; 2ms</td></tr>
-                  <tr><td className="py-2.5">Repair + Zod validation</td><td className="py-2.5">&lt; 5ms</td></tr>
-                  <tr><td className="py-2.5">LLM network retry (comparison)</td><td className="py-2.5">1,000 - 3,000ms</td></tr>
+                  <tr><td className="py-2.5">Clean JSON (fast path)</td><td className="py-2.5">typically sub-millisecond</td></tr>
+                  <tr><td className="py-2.5">Markdown extraction + parse</td><td className="py-2.5">typically sub-millisecond</td></tr>
+                  <tr><td className="py-2.5">Full heuristic repair</td><td className="py-2.5">usually 1-3ms</td></tr>
+                  <tr><td className="py-2.5">Repair + Zod validation</td><td className="py-2.5">under 5ms</td></tr>
+                  <tr><td className="py-2.5">LLM network retry (comparison)</td><td className="py-2.5">5000ms+</td></tr>
                 </tbody>
               </table>
             </div>

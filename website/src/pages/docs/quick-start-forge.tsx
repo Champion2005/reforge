@@ -22,7 +22,7 @@ if (result.success) {
   console.log(result.data);
   // → [{ name: "Red", hex: "#FF0000" }, ...]
   console.log(result.telemetry);
-  // → { durationMs: 1.2, status: "clean", attempts: 1, totalDurationMs: 845 }
+  // → { durationMs: ~1, status: "clean", attempts: 1, totalDurationMs: ~1200 }
 }`
 
 export default function QuickStartForge() {

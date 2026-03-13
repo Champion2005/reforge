@@ -5,7 +5,7 @@ export default function Performance() {
     <div className="space-y-6">
       <SectionHeader>Performance</SectionHeader>
       <p className="text-muted-foreground leading-relaxed">
-        Reforge is designed for <strong className="text-foreground">&lt; 5ms</strong> end-to-end on a 2KB input. The entire pipeline is:
+        Reforge is designed for <strong className="text-foreground">under 5ms</strong> local validation on typical 2KB outputs. The entire pipeline is:
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
         {[
@@ -29,11 +29,11 @@ export default function Performance() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border/30 text-muted-foreground">
-            <tr><td className="py-2.5">Clean JSON (fast path)</td><td className="py-2.5">&lt; 0.1ms</td></tr>
-            <tr><td className="py-2.5">Markdown extraction + parse</td><td className="py-2.5">&lt; 0.5ms</td></tr>
-            <tr><td className="py-2.5">Full heuristic repair</td><td className="py-2.5">&lt; 2ms</td></tr>
-            <tr><td className="py-2.5">Repair + Zod validation</td><td className="py-2.5">&lt; 5ms</td></tr>
-            <tr><td className="py-2.5">LLM network retry (comparison)</td><td className="py-2.5">1,000 - 3,000ms</td></tr>
+            <tr><td className="py-2.5">Clean JSON (fast path)</td><td className="py-2.5">typically sub-millisecond</td></tr>
+            <tr><td className="py-2.5">Markdown extraction + parse</td><td className="py-2.5">typically sub-millisecond</td></tr>
+            <tr><td className="py-2.5">Full heuristic repair</td><td className="py-2.5">usually 1-3ms</td></tr>
+            <tr><td className="py-2.5">Repair + Zod validation</td><td className="py-2.5">under 5ms</td></tr>
+            <tr><td className="py-2.5">LLM network retry (comparison)</td><td className="py-2.5">5000ms+</td></tr>
           </tbody>
         </table>
       </div>

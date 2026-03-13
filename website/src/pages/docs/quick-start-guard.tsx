@@ -13,7 +13,7 @@ const result = guard(llmOutput, UserSchema);
 
 if (result.success) {
   console.log(result.data);       // typed as { name: string; age: number }
-  console.log(result.telemetry);  // { durationMs: 0.4, status: "repaired_natively" }
+  console.log(result.telemetry);  // { durationMs: ~1, status: "repaired_natively" }
 } else {
   // Append to your LLM message array for a corrective retry
   messages.push({ role: 'user', content: result.retryPrompt });

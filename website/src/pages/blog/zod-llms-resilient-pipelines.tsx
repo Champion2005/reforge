@@ -202,7 +202,7 @@ export default function ZodLlmsResilientPipelines() {
 
       <Paragraph>
         Reforge&apos;s <InlineCode>guard()</InlineCode> function runs in under 5ms for
-        typical LLM outputs (1-2KB). Compare this to the 500ms-3000ms for an LLM
+        typical LLM outputs (1-2KB). Compare this to the 5000ms+ for an LLM
         API call. The validation overhead is less than 0.5% of total step time.
       </Paragraph>
 
@@ -210,9 +210,9 @@ export default function ZodLlmsResilientPipelines() {
 
       <Paragraph>
         Without repair, a trailing comma or markdown wrapper requires a full
-        network round-trip to the LLM provider. That&apos;s 1-3 seconds and real
+        network round-trip to the LLM provider. That&apos;s 5000ms+ and real
         money (input + output tokens billed again). Reforge repairs these in
-        microseconds — the most cost-effective optimization you can make.
+            under 5ms local timings — the most cost-effective optimization you can make.
       </Paragraph>
 
       <SubHeading>Retry prompts save tokens</SubHeading>

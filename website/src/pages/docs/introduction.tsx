@@ -20,7 +20,7 @@ export default function Introduction() {
         <strong className="text-foreground">Reforge</strong> is a zero-dependency TypeScript library that sits between your LLM provider and your application. It solves a common problem: LLMs frequently output malformed JSON — markdown wrappers, trailing commas, unquoted keys, truncated outputs, and type mismatches.
       </p>
       <p className="text-muted-foreground leading-relaxed">
-        Instead of paying for expensive network retries (1-3 seconds each), Reforge repairs these issues <strong className="text-foreground">deterministically in microseconds</strong> on your side. When repair isn't enough, it generates a token-efficient retry prompt you can feed back to the model.
+        Instead of paying for expensive network retries (5000ms+ each), Reforge repairs these issues <strong className="text-foreground">deterministically in under 5ms local timings</strong> on your side. When repair isn't enough, it generates a token-efficient retry prompt you can feed back to the model.
       </p>
       <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
         <p className="text-sm font-semibold text-foreground mb-4">What Reforge does:</p>

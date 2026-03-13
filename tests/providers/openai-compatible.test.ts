@@ -5,7 +5,7 @@ import type { Message } from "../../src/providers/types.js";
 /**
  * Helper: create a mock OpenAI-compatible client.
  */
-function mockOpenAIClient(content: string | null = '{"result": true}') {
+function mockOpenAIClient(content: unknown = '{"result": true}') {
   return {
     chat: {
       completions: {
@@ -53,22 +53,51 @@ describe("openaiCompatible()", () => {
     expect(result).toBe('{"name": "Alice"}');
   });
 
+  it("returns text from array-based content parts", async () => {
+    const client = mockOpenAIClient([
+      { type: "text", text: '{"name": "Array"}' },
+    ]);
+    const provider = openaiCompatible(client, "gpt-4o");
+
+    const result = await provider.call(messages);
+
+    expect(result).toBe('{"name": "Array"}');
+  });
+
+  it("returns text from top-level choice.text fallback", async () => {
+    const client = {
+      chat: {
+        completions: {
+          create: vi.fn(async () => ({
+            choices: [
+              {
+                message: { content: null },
+                text: '{"source": "choice.text"}',
+              },
+            ],
+          })),
+        },
+      },
+    };
+    const provider = openaiCompatible(client, "gpt-4o");
+
+    const result = await provider.call(messages);
+
+    expect(result).toBe('{"source": "choice.text"}');
+  });
+
   it("throws on empty response", async () => {
     const client = mockOpenAIClient(null);
     const provider = openaiCompatible(client, "gpt-4o");
 
-    await expect(provider.call(messages)).rejects.toThrow(
-      "OpenAI-compatible provider returned an empty response",
-    );
+    await expect(provider.call(messages)).rejects.toThrow(/empty response/i);
   });
 
   it("throws on empty string response", async () => {
     const client = mockOpenAIClient("");
     const provider = openaiCompatible(client, "gpt-4o");
 
-    await expect(provider.call(messages)).rejects.toThrow(
-      "OpenAI-compatible provider returned an empty response",
-    );
+    await expect(provider.call(messages)).rejects.toThrow(/empty response/i);
   });
 
   it("throws when choices array is empty", async () => {
@@ -81,9 +110,20 @@ describe("openaiCompatible()", () => {
     };
     const provider = openaiCompatible(client, "gpt-4o");
 
-    await expect(provider.call(messages)).rejects.toThrow(
-      "OpenAI-compatible provider returned an empty response",
-    );
+    await expect(provider.call(messages)).rejects.toThrow(/empty response/i);
+  });
+
+  it("throws when choices field is missing", async () => {
+    const client = {
+      chat: {
+        completions: {
+          create: vi.fn(async () => ({})),
+        },
+      },
+    };
+    const provider = openaiCompatible(client, "gpt-4o");
+
+    await expect(provider.call(messages)).rejects.toThrow(/empty response/i);
   });
 
   it("passes through extra options", async () => {

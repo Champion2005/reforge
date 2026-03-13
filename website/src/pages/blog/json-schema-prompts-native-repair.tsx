@@ -44,7 +44,7 @@ const result = guard(raw, UserSchema);
 // result.success === true
 // result.data === { name: "Alice", age: 30, tags: ["dev", "ml"] }
 // result.isRepaired === true
-// result.telemetry.durationMs === 0.3`
+// result.telemetry.durationMs is typically < 5`
 
 const retryExample = `// When repair isn't enough — missing required fields
 const raw = '{"name": "Alice"}';
@@ -206,7 +206,7 @@ export default function JsonSchemaPromptsNativeRepair() {
 
       <Paragraph>
         Reforge implements this repair-first philosophy. It&apos;s zero-dependency,
-        runs in under 5ms, and works in every JavaScript runtime. Install it
+        runs under 5ms on typical outputs, and works in every JavaScript runtime. Install it
         with <InlineCode>npm install reforge-ai zod</InlineCode> and stop paying
         for preventable retries.
       </Paragraph>

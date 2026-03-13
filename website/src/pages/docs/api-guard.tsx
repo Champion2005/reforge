@@ -4,7 +4,8 @@ import CodeBlock from '../../components/CodeBlock'
 const guardApiTypes = `// ── Core: guard() ──
 function guard<T extends z.ZodTypeAny>(
   llmOutput: string,
-  schema: T
+  schema: T,
+  options?: GuardOptions
 ): GuardResult<z.infer<T>>
 
 type GuardResult<T> = GuardSuccess<T> | GuardFailure;
@@ -21,11 +22,28 @@ interface GuardFailure {
   retryPrompt: string;
   errors: ZodIssue[];
   telemetry: TelemetryData;
+  debug?: GuardDebugArtifacts;
 }
 
 interface TelemetryData {
   durationMs: number;
   status: 'clean' | 'repaired_natively' | 'failed';
+}
+
+interface GuardOptions {
+  profile?: 'safe' | 'standard' | 'aggressive';
+  heuristics?: Partial<GuardHeuristicOptions>;
+  retryPrompt?: {
+    mode?: 'compact' | 'line-aware';
+    contextRadius?: number;
+    maxContextChars?: number;
+    includeLineNumbers?: boolean;
+    maxIssueBlocks?: number;
+    redactPaths?: string[];
+    redactRegex?: RegExp[];
+  };
+  retryPromptStrategy?: (input: RetryPromptStrategyInput) => string;
+  debug?: boolean;
 }`
 
 export default function ApiGuard() {
@@ -45,6 +63,7 @@ export default function ApiGuard() {
           <div className="mt-4 space-y-2.5 text-sm text-muted-foreground">
             <ParamRow name="llmOutput" type="string" desc="The raw string produced by an LLM." />
             <ParamRow name="schema" type="z.ZodTypeAny" desc="The Zod schema to validate against." />
+            <ParamRow name="options" type="GuardOptions" desc="Optional profile/heuristic controls, line-aware retry prompt mode, redaction, custom strategy, and debug artifacts." />
             <ParamRow name="Returns" type="GuardResult<T>" desc="A discriminated union. Check result.success to narrow." />
           </div>
         </div>

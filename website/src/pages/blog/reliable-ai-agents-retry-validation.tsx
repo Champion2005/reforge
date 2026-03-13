@@ -136,7 +136,7 @@ export default function ReliableAIAgentsPost() {
       <Heading>Why Local Repair Matters for Agents</Heading>
 
       <Paragraph>
-        In an agentic pipeline, latency compounds. If your agent executes 5 steps and each step needs one network retry, you've added 5-15 seconds of total latency. For interactive agents, that's the difference between responsive and unusable.
+        In an agentic pipeline, latency compounds. If your agent executes 5 steps and each step needs one network retry, you've added 25000ms+ of total latency. For interactive agents, that's the difference between responsive and unusable.
       </Paragraph>
 
       <Paragraph>
