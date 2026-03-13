@@ -7,7 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-No unreleased package changes.
+### Added
+
+- **Line-aware retry prompts** - `guard()` now supports `retryPrompt.mode = "line-aware"` to include only relevant line windows for parse/validation failures, with multi-issue block grouping and configurable context radius.
+- **Retry prompt customization hooks** - Added `retryPromptStrategy` for full custom retry prompt generation while preserving typed context inputs.
+- **Guard profiles and heuristic controls** - Added `profile` (`safe` | `standard` | `aggressive`) and per-heuristic toggles in `GuardOptions`.
+- **Retry-context redaction controls** - Added `retryPrompt.redactPaths` and `retryPrompt.redactRegex` to prevent sensitive values from leaking into retry prompts.
+- **Optional debug artifacts** - Added `debug: true` support on `guard()` to expose extracted/repaired text, applied repair passes, likely parse line, and retry context blocks.
+- **Forge retry policy controls** - Added `retryPolicy` with `shouldRetry`, per-attempt `mutateProviderOptions`, and overrideable retry count.
+- **Structured forge events** - Added `onEvent` stream with attempt lifecycle events for observability.
+- **Provider fallback orchestration** - Added `forgeWithFallback()` for ordered provider failover with per-provider attempt budgets.
+
+### Changed
+
+- **`forge()` now forwards guard options** - Added `guardOptions` pass-through for consistent retry prompt behavior in provider orchestration flows.
+- **Dirty parser metadata surfaced internally** - Dirty parse pipeline now tracks applied repairs and likely parse line to improve retry context quality.
+
+### Fixed
+
+- **Retry prompt context quality** - Parse and validation retries can now target specific lines instead of broad snippets when line-aware mode is enabled.
 
 ## [0.2.1] - 2026-03-13
 

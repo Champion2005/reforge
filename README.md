@@ -30,6 +30,15 @@ Network retries to providers (OpenAI, Anthropic, etc.) cost **1-3 seconds** and 
 - **Generates token-efficient retry prompts** when repair isn't enough
 - Works everywhere: **Node.js, Bun, Deno, Cloudflare Workers, Vercel Edge, Browsers**
 
+### New Capability Highlights
+
+- **Line-aware retry prompts**: only relevant error lines are included (including multi-line contexts), reducing noisy retries.
+- **Prompt customization**: plug in your own retry prompt strategy with `retryPromptStrategy`.
+- **Profiles + toggles**: choose `safe`, `standard`, or `aggressive` guard profiles and override individual heuristics.
+- **Built-in redaction**: redact sensitive paths/patterns from retry contexts.
+- **Debug artifacts**: inspect extracted/repaired JSON and applied repair passes when needed.
+- **Advanced forge orchestration**: retry policies, structured lifecycle events, and `forgeWithFallback()` provider failover.
+
 ## Installation
 
 ```bash
@@ -78,6 +87,26 @@ if (result.success) {
 }
 ```
 
+### guard() with Line-Aware Retry Context
+
+```typescript
+const result = guard(raw, UserSchema, {
+  profile: "standard",
+  retryPrompt: {
+    mode: "line-aware",
+    contextRadius: 1,
+    maxContextChars: 700,
+    redactPaths: ["/user/ssn"],
+  },
+  debug: true,
+});
+
+if (!result.success) {
+  console.log(result.retryPrompt); // includes only relevant lines in line-aware mode
+  console.log(result.debug?.retryContextBlocks);
+}
+```
+
 ## End-to-End with forge()
 
 `forge()` wraps the entire flow: call your LLM → repair → validate → auto-retry.
@@ -109,6 +138,49 @@ if (result.success) {
   console.log(result.telemetry);
   // → { durationMs: 1.2, status: "clean", attempts: 1, totalDurationMs: 845 }
 }
+```
+
+### forge() Advanced Controls
+
+```typescript
+const result = await forge(provider, messages, Colors, {
+  retryPolicy: {
+    maxRetries: 4,
+    shouldRetry: (failure, attempt) => attempt < 3 && failure.errors.length > 0,
+    mutateProviderOptions: (attempt, base) => ({
+      ...base,
+      temperature: attempt === 1 ? 0.6 : 0.2,
+    }),
+  },
+  onEvent: (event) => {
+    if (event.kind === "retry_scheduled") {
+      console.log(`Retrying: ${event.attempt} -> ${event.nextAttempt}`);
+    }
+  },
+  guardOptions: {
+    retryPrompt: { mode: "line-aware" },
+  },
+});
+```
+
+### Provider Fallback Chain
+
+```typescript
+import { forgeWithFallback } from "reforge-ai";
+
+const result = await forgeWithFallback(
+  [
+    { provider: openaiCompatible(openaiClient, "gpt-4o"), maxAttempts: 2 },
+    { provider: anthropic(anthropicClient, "claude-sonnet-4-20250514"), maxAttempts: 1 },
+  ],
+  messages,
+  schema,
+  {
+    onProviderFallback: (from, to) => {
+      console.log(`Fallback provider: ${from} -> ${to}`);
+    },
+  },
+);
 ```
 
 ### Provider Adapters
@@ -216,7 +288,7 @@ No network requests. No retries. Just a string you feed back.
 
 ## API Reference
 
-### `guard<T>(llmOutput: string, schema: T): GuardResult<z.infer<T>>`
+### `guard<T>(llmOutput: string, schema: T, options?: GuardOptions): GuardResult<z.infer<T>>`
 
 The main entry-point. Parses, repairs, validates, and returns a typed result.
 
@@ -226,6 +298,7 @@ The main entry-point. Parses, repairs, validates, and returns a typed result.
 |---|---|---|
 | `llmOutput` | `string` | The raw string produced by an LLM |
 | `schema` | `ZodTypeAny` | The Zod schema the output must conform to |
+| `options` | `GuardOptions` | Optional profile/toggle config, line-aware retry mode, redaction, custom prompt strategy, and debug artifacts |
 
 **Returns:** `GuardResult<T>` — a discriminated union:
 
@@ -267,7 +340,7 @@ End-to-end structured output: call LLM → guard() → auto-retry.
 | `provider` | `ReforgeProvider` | An adapter wrapping your LLM SDK |
 | `messages` | `Message[]` | Conversation messages to send |
 | `schema` | `ZodTypeAny` | The Zod schema the output must conform to |
-| `options` | `ForgeOptions` | Optional: `maxRetries` (default: 3), `providerOptions`, `onRetry` |
+| `options` | `ForgeOptions` | Optional: `maxRetries`, `retryPolicy`, `providerOptions`, `guardOptions`, `onRetry`, `onEvent` |
 
 `onRetry` is called after each failed attempt that will be retried:
 

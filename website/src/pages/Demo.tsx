@@ -5,11 +5,35 @@ import { demoPresets, type DemoPreset } from './demo-presets'
 const presets = demoPresets
 
 /* The 3 initially-visible preset keys */
-const initialPresetKeys = ['validationFailure', 'combined', 'typeCoercion'] as const
+const initialPresetKeys = ['lineAwareFailure', 'validationFailure', 'combined'] as const
 
 type GuardResultAny =
-  | { success: true; data: unknown; telemetry: { durationMs: number; status: string }; isRepaired: boolean }
-  | { success: false; retryPrompt: string; errors: Array<{ path: (string | number)[]; message: string }>; telemetry: { durationMs: number; status: string } }
+  | {
+      success: true
+      data: unknown
+      telemetry: { durationMs: number; status: string }
+      isRepaired: boolean
+      debug?: {
+        extractedText?: string
+        repairedText?: string
+        appliedRepairs?: string[]
+        likelyErrorLine?: number
+        retryContextBlocks?: Array<{ startLine: number; endLine: number; text: string }>
+      }
+    }
+  | {
+      success: false
+      retryPrompt: string
+      errors: Array<{ path: (string | number)[]; message: string }>
+      telemetry: { durationMs: number; status: string }
+      debug?: {
+        extractedText?: string
+        repairedText?: string
+        appliedRepairs?: string[]
+        likelyErrorLine?: number
+        retryContextBlocks?: Array<{ startLine: number; endLine: number; text: string }>
+      }
+    }
 
 export default function Demo() {
   const [input, setInput] = useState(presets.validationFailure.input)
@@ -18,6 +42,9 @@ export default function Demo() {
   const [error, setError] = useState<string | null>(null)
   const [activePreset, setActivePreset] = useState<DemoPreset | null>(presets.validationFailure)
   const [overlayOpen, setOverlayOpen] = useState(false)
+  const [retryMode, setRetryMode] = useState<'compact' | 'line-aware'>('line-aware')
+  const [profile, setProfile] = useState<'safe' | 'standard' | 'aggressive'>('standard')
+  const [debugEnabled, setDebugEnabled] = useState(true)
 
   const loadPreset = (key: string) => {
     const preset = presets[key]
@@ -40,7 +67,15 @@ export default function Demo() {
       const schemaFn = new Function('z', `return ${schema}`)
       const zodSchema = schemaFn(z)
 
-      const res = guard(input, zodSchema) as GuardResultAny
+      const res = guard(input, zodSchema, {
+        profile,
+        debug: debugEnabled,
+        retryPrompt: {
+          mode: retryMode,
+          contextRadius: 1,
+          maxContextChars: 700,
+        },
+      }) as GuardResultAny
       setResult(res)
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
@@ -138,6 +173,37 @@ export default function Demo() {
             <RotateCcw className="h-3.5 w-3.5" />
             Reset
           </button>
+
+          <select
+            value={retryMode}
+            onChange={(e) => setRetryMode(e.target.value as 'compact' | 'line-aware')}
+            className="h-9 rounded-lg border border-border/60 bg-card px-3 text-xs font-semibold uppercase tracking-wide text-foreground"
+            title="Retry prompt mode"
+          >
+            <option value="compact">Retry: Compact</option>
+            <option value="line-aware">Retry: Line-Aware</option>
+          </select>
+
+          <select
+            value={profile}
+            onChange={(e) => setProfile(e.target.value as 'safe' | 'standard' | 'aggressive')}
+            className="h-9 rounded-lg border border-border/60 bg-card px-3 text-xs font-semibold uppercase tracking-wide text-foreground"
+            title="Guard profile"
+          >
+            <option value="safe">Profile: Safe</option>
+            <option value="standard">Profile: Standard</option>
+            <option value="aggressive">Profile: Aggressive</option>
+          </select>
+
+          <label className="inline-flex h-9 items-center gap-2 rounded-lg border border-border/60 px-3 text-xs font-semibold uppercase tracking-wide text-foreground">
+            <input
+              type="checkbox"
+              checked={debugEnabled}
+              onChange={(e) => setDebugEnabled(e.target.checked)}
+              className="h-3.5 w-3.5 rounded border-border/60"
+            />
+            Debug Artifacts
+          </label>
         </div>
 
         {/* Split panes */}
@@ -291,6 +357,16 @@ export default function Demo() {
                       </code>
                     </pre>
                   </ResultSection>
+
+                  {result.debug && (
+                    <ResultSection title="Debug Artifacts">
+                      <pre className="overflow-x-auto rounded-lg border border-border/40 bg-card/50 p-3.5 text-[13px] leading-6">
+                        <code className="font-mono text-foreground/85">
+                          {JSON.stringify(result.debug, null, 2)}
+                        </code>
+                      </pre>
+                    </ResultSection>
+                  )}
                 </div>
               )}
             </div>

@@ -240,4 +240,61 @@ Let me know if you need anything else!`;
       expect(r.telemetry.durationMs).toBeLessThan(5);
     }
   });
+
+  it("supports line-aware retry prompts through guard options", () => {
+    const schema = z.object({
+      user: z.object({
+        age: z.number(),
+        tags: z.array(z.string()),
+      }),
+    });
+    const r = guard('{"user":{"age":"30","tags":"a,b"}}', schema, {
+      retryPrompt: { mode: "line-aware", contextRadius: 1 },
+    });
+
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.retryPrompt).toContain("Relevant lines:");
+      expect(r.retryPrompt).toContain('"tags":"a,b"');
+    }
+  });
+
+  it("supports safe profile and heuristic overrides", () => {
+    const schema = z.object({ a: z.number() });
+
+    const safeFail = guard('{"a": 1 // comment\n}', schema, {
+      profile: "safe",
+    });
+    expect(safeFail.success).toBe(false);
+
+    const overridePass = guard('{"a": 1 // comment\n}', schema, {
+      profile: "safe",
+      heuristics: { stripComments: true },
+    });
+    expect(overridePass.success).toBe(true);
+  });
+
+  it("includes debug artifacts when debug option is enabled", () => {
+    const schema = z.object({ a: z.number() });
+    const r = guard('{a: "2",}', schema, { debug: true });
+
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.debug).toBeDefined();
+      expect(r.debug?.appliedRepairs?.length).toBeGreaterThan(0);
+      expect(r.debug?.repairedText).toContain('"a": "2"');
+    }
+  });
+
+  it("uses custom retryPromptStrategy from guard options", () => {
+    const schema = z.object({ a: z.number() });
+    const r = guard('{"a":"oops"}', schema, {
+      retryPromptStrategy: () => "CUSTOM-STRATEGY",
+    });
+
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.retryPrompt).toBe("CUSTOM-STRATEGY");
+    }
+  });
 });

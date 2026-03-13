@@ -143,4 +143,59 @@ describe("generateRetryPrompt", () => {
     const prompt = generateRetryPrompt(errors);
     expect(prompt).toContain("Path: /");
   });
+
+  it("supports line-aware parse context blocks", () => {
+    const raw = `{
+  "name": "alice"
+  "age": 30
+}`;
+
+    const prompt = generateRetryPrompt([], raw, {
+      options: { mode: "line-aware", contextRadius: 1 },
+      parseErrorLine: 3,
+    });
+
+    expect(prompt).toContain("Relevant lines:");
+    expect(prompt).toContain("|   \"age\": 30");
+  });
+
+  it("supports line-aware validation context blocks", () => {
+    const errors: z.ZodIssue[] = [
+      {
+        code: "invalid_type",
+        expected: "number",
+        received: "string",
+        path: ["user", "age"],
+        message: "Expected number",
+      },
+    ];
+
+    const prompt = generateRetryPrompt(errors, undefined, {
+      options: { mode: "line-aware", contextRadius: 1 },
+      sourceText: JSON.stringify({ user: { age: "30" } }, null, 2),
+    });
+
+    expect(prompt).toContain("Relevant lines:");
+    expect(prompt).toContain('"age": "30"');
+  });
+
+  it("applies regex redaction to line-aware blocks", () => {
+    const prompt = generateRetryPrompt([], '{"token":"Bearer secret-123"}', {
+      options: {
+        mode: "line-aware",
+        redactRegex: [/Bearer\s+[A-Za-z0-9-]+/g],
+      },
+    });
+
+    expect(prompt).toContain("[REDACTED]");
+    expect(prompt).not.toContain("secret-123");
+  });
+
+  it("uses custom retry prompt strategy when provided", () => {
+    const prompt = generateRetryPrompt([], "bad", {
+      strategy: () => "CUSTOM-RETRY-PROMPT",
+    });
+
+    expect(prompt).toBe("CUSTOM-RETRY-PROMPT");
+  });
 });

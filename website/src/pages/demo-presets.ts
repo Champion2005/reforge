@@ -131,6 +131,29 @@ export const demoPresets: Record<string, DemoPreset> = {
     ],
   },
 
+  lineAwareFailure: {
+    label: 'Line-Aware Retry Context',
+    desc: 'Multi-line mismatch with targeted retry lines',
+    input: `{
+  "order": {
+    "id": "ord_1001",
+    "total": "149.99",
+    "items": "headphones, charger"
+  }
+}`,
+    schema: `z.object({
+  order: z.object({
+    id: z.string(),
+    total: z.number(),
+    items: z.array(z.string()),
+  }),
+})`,
+    corrections: [
+      { description: 'Line-aware retry prompt highlights only failing lines' },
+      { description: 'Shows exact local context instead of full raw payload' },
+    ],
+  },
+
   product: {
     label: 'Product Extraction',
     desc: 'E-commerce AI analysis with enrichment',
