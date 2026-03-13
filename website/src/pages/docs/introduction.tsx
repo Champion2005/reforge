@@ -30,7 +30,7 @@ export default function Introduction() {
               <span className="text-primary font-bold flex-shrink-0">1.</span>
               <strong className="text-foreground">Parses & Repairs</strong>
             </div>
-            <div className="pl-6 text-muted-foreground">Fixes markdown fences, trailing commas, unquoted keys, single quotes, escaped quote anomalies, and truncated brackets.</div>
+            <div className="pl-6 text-muted-foreground">Fixes markdown fences (``` and ~~~), trailing commas, unquoted keys, single/backtick quotes, JS comments, Python literals, escaped quote anomalies, and truncated brackets.</div>
           </li>
           <li className="flex flex-col gap-1.5">
             <div className="flex items-baseline gap-2">

@@ -7,7 +7,7 @@ export default function Troubleshooting() {
 
       <ConceptCard title="Zod is not installed">
         <p className="text-muted-foreground leading-relaxed text-sm">
-          If you see an error about Zod not being found, install it as a peer dependency: <InlineCode>npm install zod</InlineCode>. Zod is optional — Reforge has zero runtime dependencies — but it's required for schema validation.
+          If you see an error about Zod not being found, install it: <InlineCode>npm install zod</InlineCode>. Zod is a required peer dependency.
         </p>
       </ConceptCard>
 

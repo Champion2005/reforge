@@ -446,7 +446,7 @@ Reforge is designed for **< 5ms** end-to-end on a 2KB input. The entire pipeline
 
 ## Guarantees
 
-- **Zero dependencies** — only `zod` as an optional peer dependency
+- **Zero dependencies in core** — `zod` is a required peer dependency
 - **Environment agnostic** — no Node-specific APIs (`fs`, `path`, `Buffer`)
 - **Tree-shakeable** — ESM + CJS dual output via tsup
 - **Strict TypeScript** — full type safety with discriminated union results

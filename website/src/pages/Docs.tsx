@@ -732,7 +732,7 @@ Your previous response could not be parsed as JSON. The schema is still in your 
 
             <ConceptCard title="Zod is not installed">
               <p className="text-muted-foreground leading-relaxed text-sm">
-                If you see an error about Zod not being found, install it as a peer dependency: <InlineCode>npm install zod</InlineCode>. Zod is optional — Reforge has zero runtime dependencies — but it's required for schema validation.
+                If you see an error about Zod not being found, install it: <InlineCode>npm install zod</InlineCode>. Zod is a required peer dependency.
               </p>
             </ConceptCard>
 
@@ -768,11 +768,11 @@ Your previous response could not be parsed as JSON. The schema is still in your 
             </FaqItem>
 
             <FaqItem question="What happens if the input is not JSON at all?">
-              If Reforge can't find any JSON-like structure in the input (no opening <InlineCode>{'{'}</InlineCode> or <InlineCode>[</InlineCode>), the guard call returns a failure result with Zod validation errors. It never throws.
+              Reforge returns a failure with a parse-focused <InlineCode>retryPrompt</InlineCode> and an <InlineCode>errors</InlineCode> entry explaining that JSON parsing failed. It never throws.
             </FaqItem>
 
             <FaqItem question="Can I use Reforge without Zod?">
-              Zod is an optional peer dependency. However, without it, Reforge can only do syntactic repair (dirty parsing). Schema validation and type coercion require Zod.
+              No. Zod is a required peer dependency.
             </FaqItem>
 
             <FaqItem question="Does Reforge support nested objects and arrays?">

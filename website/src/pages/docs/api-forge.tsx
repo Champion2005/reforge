@@ -19,8 +19,9 @@ interface Message {
 }
 
 interface ForgeOptions {
-  maxRetries?: number;         // Default: 3
+  maxRetries?: number;         // Default: 3. NaN/Infinity -> 0, negative -> 0, decimals are floored.
   providerOptions?: ProviderCallOptions;
+  onRetry?: (attempt: number, failure: { errors: ZodIssue[]; retryPrompt: string }) => void;
 }
 
 interface ProviderCallOptions {
@@ -41,12 +42,18 @@ interface ForgeSuccess<T> {
 interface ForgeFailure {
   success: false;
   errors: ZodIssue[];
+  retryPrompt: string;
   telemetry: ForgeTelemetry;
 }
 
 interface ForgeTelemetry extends TelemetryData {
   attempts: number;
   totalDurationMs: number;
+  attemptDetails: Array<{
+    attempt: number;
+    durationMs: number;
+    status: 'clean' | 'repaired_natively' | 'failed';
+  }>;
 }
 
 // ── Adapter factories ──
@@ -72,8 +79,8 @@ export default function ApiForge() {
             <ParamRow name="provider" type="ReforgeProvider" desc="An adapter wrapping your LLM SDK." />
             <ParamRow name="messages" type="Message[]" desc="The conversation messages to send." />
             <ParamRow name="schema" type="z.ZodTypeAny" desc="The Zod schema to validate against." />
-            <ParamRow name="options" type="ForgeOptions" desc="Optional: maxRetries (default 3), providerOptions." />
-            <ParamRow name="Returns" type="Promise<ForgeResult<T>>" desc="Discriminated union with telemetry including attempts and totalDurationMs." />
+            <ParamRow name="options" type="ForgeOptions" desc="Optional: maxRetries, providerOptions, onRetry callback." />
+            <ParamRow name="Returns" type="Promise<ForgeResult<T>>" desc="Discriminated union with retryPrompt on failure and per-attempt telemetry." />
           </div>
         </div>
 
@@ -86,6 +93,7 @@ export default function ApiForge() {
             <ParamRow name="status" type="string" desc="Status of the last guard() call." />
             <ParamRow name="attempts" type="number" desc="Total LLM calls made (1 = first try succeeded)." />
             <ParamRow name="totalDurationMs" type="number" desc="Wall-clock time for the entire forge() call." />
+            <ParamRow name="attemptDetails" type="ForgeAttemptDetail[]" desc="Per-attempt telemetry snapshots with attempt number, duration, and status." />
           </div>
         </div>
       </div>

@@ -19,10 +19,10 @@ export default function Concepts() {
           </li>
           <li>
             <strong className="text-foreground">Extraction</strong> —
-            Strips markdown fences, locates the first <InlineCode>{'{'}</InlineCode> or <InlineCode>[</InlineCode> and its matching closer.
+            Strips markdown fences (<InlineCode>```</InlineCode> and <InlineCode>~~~</InlineCode>), then locates the first <InlineCode>{'{'}</InlineCode> or <InlineCode>[</InlineCode> and its matching closer.
           </li>
           <li>
-            <strong className="text-foreground">Heuristic fixes</strong> — Removes trailing commas, quotes unquoted keys, converts single quotes to double, un-escapes improperly escaped quotes.
+            <strong className="text-foreground">Heuristic fixes</strong> — Removes trailing commas and JS comments, quotes unquoted keys, converts single/backtick quotes to double quotes, normalizes Python literals (<InlineCode>True</InlineCode>/<InlineCode>False</InlineCode>/<InlineCode>None</InlineCode>), and un-escapes improperly escaped quotes.
           </li>
           <li>
             <strong className="text-foreground">Bracket balancing</strong> — Appends missing closing brackets/braces using a stack to handle truncated LLM output.
@@ -36,7 +36,8 @@ export default function Concepts() {
           your Zod schema using <InlineCode>safeParse()</InlineCode>. It also
           applies automatic type coercion before failing — for example,
           the string <InlineCode>"true"</InlineCode> is coerced to boolean <InlineCode>true</InlineCode>,
-          and <InlineCode>"42"</InlineCode> to number <InlineCode>42</InlineCode>.
+          <InlineCode>"42"</InlineCode> to number <InlineCode>42</InlineCode>, and ISO date strings to <InlineCode>Date</InlineCode>
+          when the schema expects <InlineCode>z.date()</InlineCode>.
         </p>
       </ConceptCard>
 

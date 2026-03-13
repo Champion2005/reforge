@@ -275,7 +275,7 @@ export default function Home() {
                   'Auto-retry with token-efficient prompts',
                   'Returns fully typed, validated data',
                   'Configurable max retries and provider options',
-                  'Telemetry: attempts, total duration, per-call status',
+                  'Telemetry: attempts, attemptDetails, total duration',
                 ].map((item) => (
                   <div key={item} className="flex items-center gap-2.5 text-sm text-muted-foreground">
                     <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
@@ -373,7 +373,7 @@ export default function Home() {
               {
                 step: '2',
                 title: 'Dirty Parse',
-                desc: 'Extracts JSON, fixes trailing commas, unquoted keys, balances brackets.',
+                desc: 'Extracts fenced JSON, fixes comments/quotes/literals, then balances brackets.',
               },
               {
                 step: '3',
@@ -419,12 +419,12 @@ export default function Home() {
                 Performance
               </p>
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Sub-millisecond. Zero dependencies.
+                Sub-millisecond. Zero-dep core.
               </h2>
               <p className="mt-4 max-w-lg text-muted-foreground leading-relaxed">
                 guard() executes in under 5ms for 2KB inputs. Synchronous, pure,
                 never throws. No async, no I/O, no global state. Only Zod as an
-                optional peer dependency.
+                required peer dependency.
               </p>
               <div className="mt-8 overflow-x-auto">
                 <table className="w-full text-sm">
