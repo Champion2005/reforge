@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { z } from "zod";
-import { forge } from "../../src/providers/forge.js";
+import { forge, ForgeNetworkError } from "../../src/providers/forge.js";
 import { forgeWithFallback } from "../../src/providers/fallback.js";
 import type { ReforgeProvider, Message } from "../../src/providers/types.js";
 
@@ -270,7 +270,7 @@ describe("forge()", () => {
   // Provider errors bubble up
   // -----------------------------------------------------------------------
 
-  it("lets provider errors bubble up (not caught)", async () => {
+  it("wraps intrinsic network failures as ForgeNetworkError", async () => {
     const provider: ReforgeProvider = {
       call: vi.fn(async () => {
         throw new Error("Network timeout");
@@ -280,9 +280,133 @@ describe("forge()", () => {
       { role: "user", content: "Return a user." },
     ];
 
-    await expect(forge(provider, messages, UserSchema)).rejects.toThrow(
-      "Network timeout",
+    await expect(forge(provider, messages, UserSchema)).rejects.toBeInstanceOf(
+      ForgeNetworkError,
     );
+  });
+
+  it("falls back to next provider on intrinsic network failure", async () => {
+    const primary: ReforgeProvider = {
+      id: "primary",
+      call: vi.fn(async () => {
+        throw new Error("429 rate limit");
+      }),
+    };
+    const secondary = mockProvider(['{"name": "Fallback", "age": 22}']);
+
+    const result = await forge(
+      [primary, secondary],
+      [{ role: "user", content: "Return a user." }],
+      UserSchema,
+      { maxRetries: 0 },
+    );
+
+    expect(result.success).toBe(true);
+    expect(primary.call).toHaveBeenCalledTimes(1);
+    expect(secondary.call).toHaveBeenCalledTimes(1);
+  });
+
+  it("throws ForgeNetworkError when network failure occurs without fallback", async () => {
+    const provider: ReforgeProvider = {
+      id: "solo",
+      call: vi.fn(async () => {
+        throw new Error("500 internal server error");
+      }),
+    };
+
+    await expect(
+      forge(provider, [{ role: "user", content: "Return a user." }], UserSchema, { maxRetries: 0 }),
+    ).rejects.toBeInstanceOf(ForgeNetworkError);
+  });
+
+  it("executes local tools and continues the loop until final assistant JSON", async () => {
+    const provider: ReforgeProvider = {
+      call: vi
+        .fn()
+        .mockResolvedValueOnce('{"tool_calls":[{"id":"t1","name":"getWeather","arguments":{"city":"Paris"}}]}')
+        .mockResolvedValueOnce('{"name":"Tool User","age":41}'),
+    };
+
+    const result = await forge(
+      provider,
+      [{ role: "user", content: "Get weather then return user." }],
+      UserSchema,
+      {
+        tools: {
+          getWeather: {
+            schema: z.object({ city: z.string() }),
+            execute: async ({ city }) => ({ city, tempC: 19 }),
+          },
+        },
+        maxRetries: 0,
+      },
+    );
+
+    expect(result.success).toBe(true);
+    expect(provider.call).toHaveBeenCalledTimes(2);
+    if (result.success) {
+      expect(result.telemetry.toolExecutionDurationMs).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it("emits onChunk only for final non-tool responses", async () => {
+    const provider: ReforgeProvider = {
+      call: vi
+        .fn()
+        .mockResolvedValueOnce('{"tool_calls":[{"id":"t1","name":"noop","arguments":{}}]}')
+        .mockResolvedValueOnce('{"name":"Chunked","age":30}'),
+    };
+
+    const onChunk = vi.fn();
+    const result = await forge(
+      provider,
+      [{ role: "user", content: "Run tool then output user." }],
+      UserSchema,
+      {
+        maxRetries: 0,
+        onChunk,
+        tools: {
+          noop: {
+            schema: z.object({}),
+            execute: () => ({ ok: true }),
+          },
+        },
+      },
+    );
+
+    expect(result.success).toBe(true);
+    expect(onChunk).toHaveBeenCalledTimes(1);
+    expect(onChunk).toHaveBeenCalledWith('{"name":"Chunked","age":30}');
+  });
+
+  it("falls back when provider fails during tool loop", async () => {
+    const primary: ReforgeProvider = {
+      id: "primary",
+      call: vi
+        .fn()
+        .mockResolvedValueOnce('{"tool_calls":[{"id":"t1","name":"noop","arguments":{}}]}')
+        .mockRejectedValueOnce(new Error("503 service unavailable")),
+    };
+    const secondary = mockProvider(['{"name":"Recovered","age":26}']);
+
+    const result = await forge(
+      [primary, secondary],
+      [{ role: "user", content: "Do tool call" }],
+      UserSchema,
+      {
+        maxRetries: 0,
+        tools: {
+          noop: {
+            schema: z.object({}),
+            execute: () => ({ ok: true }),
+          },
+        },
+      },
+    );
+
+    expect(result.success).toBe(true);
+    expect(primary.call).toHaveBeenCalledTimes(2);
+    expect(secondary.call).toHaveBeenCalledTimes(1);
   });
 
   // -----------------------------------------------------------------------

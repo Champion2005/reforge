@@ -138,6 +138,10 @@ export interface ForgeOptions<
   tools?: Record<string, ReforgeTool>;
   /** Hard timeout applied to local tool execution. */
   toolTimeoutMs?: number;
+  /** Hard circuit breaker for model-tool loops. Default: 5. */
+  maxAgentIterations?: number;
+  /** Optional stream callback for user-facing assistant text chunks. */
+  onChunk?: (text: string) => void;
   /** Callback invoked after a failed attempt that will be retried. */
   onRetry?: (attempt: number, failure: { errors: ZodIssue[]; retryPrompt: string }) => void;
   /** Structured event stream for observability. */

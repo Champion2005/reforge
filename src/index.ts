@@ -46,6 +46,7 @@
 
 export { guard } from "./guard.js";
 export { forge } from "./providers/forge.js";
+export { ForgeNetworkError } from "./providers/forge.js";
 export { forgeWithFallback } from "./providers/fallback.js";
 export type {
   GuardResult,
