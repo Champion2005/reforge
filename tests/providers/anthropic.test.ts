@@ -30,8 +30,8 @@ describe("anthropic()", () => {
     expect(client.messages.create).toHaveBeenCalledWith(
       expect.objectContaining({
         model: "claude-sonnet-4-20250514",
-        system: "You are helpful.",
-        messages: [{ role: "user", content: "Hello" }],
+        system: [{ type: "text", text: "You are helpful." }],
+        messages: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
         max_tokens: 4096,
       }),
     );
@@ -50,7 +50,7 @@ describe("anthropic()", () => {
     const callArgs = (client.messages.create.mock.calls.at(0)?.[0] ?? {}) as Record<string, unknown>;
     expect(callArgs).toBeDefined();
     expect(callArgs.system).toBeUndefined();
-    expect(callArgs.messages).toEqual([{ role: "user", content: "Hello" }]);
+    expect(callArgs.messages).toEqual([{ role: "user", content: [{ type: "text", text: "Hello" }] }]);
   });
 
   it("returns the text content", async () => {
@@ -138,11 +138,11 @@ describe("anthropic()", () => {
 
     expect(client.messages.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        system: "Be helpful.",
+        system: [{ type: "text", text: "Be helpful." }],
         messages: [
-          { role: "user", content: "First try" },
-          { role: "assistant", content: "Bad response" },
-          { role: "user", content: "Try again" },
+          { role: "user", content: [{ type: "text", text: "First try" }] },
+          { role: "assistant", content: [{ type: "text", text: "Bad response" }] },
+          { role: "user", content: [{ type: "text", text: "Try again" }] },
         ],
       }),
     );
@@ -162,8 +162,11 @@ describe("anthropic()", () => {
 
     expect(client.messages.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        system: "Rule 1\n\nRule 2",
-        messages: [{ role: "user", content: "Hello" }],
+        system: [
+          { type: "text", text: "Rule 1" },
+          { type: "text", text: "Rule 2" },
+        ],
+        messages: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
       }),
     );
   });
@@ -187,7 +190,10 @@ describe("anthropic()", () => {
         messages: [
           {
             role: "user",
-            content: "Analyze the attached input\n[image_url:https://example.com/img.jpg]",
+            content: [
+              { type: "text", text: "Analyze the attached input" },
+              { type: "text", text: "[image_url:https://example.com/img.jpg]" },
+            ],
           },
         ],
       }),

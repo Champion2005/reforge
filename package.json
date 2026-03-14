@@ -37,6 +37,36 @@
         "default": "./dist/providers/anthropic.cjs"
       }
     },
+    "./openrouter": {
+      "import": {
+        "types": "./dist/providers/openrouter.d.ts",
+        "default": "./dist/providers/openrouter.js"
+      },
+      "require": {
+        "types": "./dist/providers/openrouter.d.cts",
+        "default": "./dist/providers/openrouter.cjs"
+      }
+    },
+    "./groq": {
+      "import": {
+        "types": "./dist/providers/groq.d.ts",
+        "default": "./dist/providers/groq.js"
+      },
+      "require": {
+        "types": "./dist/providers/groq.d.cts",
+        "default": "./dist/providers/groq.cjs"
+      }
+    },
+    "./together": {
+      "import": {
+        "types": "./dist/providers/together.d.ts",
+        "default": "./dist/providers/together.js"
+      },
+      "require": {
+        "types": "./dist/providers/together.d.cts",
+        "default": "./dist/providers/together.cjs"
+      }
+    },
     "./google": {
       "import": {
         "types": "./dist/providers/google.d.ts",
@@ -55,6 +85,15 @@
       ],
       "anthropic": [
         "dist/providers/anthropic.d.ts"
+      ],
+      "openrouter": [
+        "dist/providers/openrouter.d.ts"
+      ],
+      "groq": [
+        "dist/providers/groq.d.ts"
+      ],
+      "together": [
+        "dist/providers/together.d.ts"
       ],
       "google": [
         "dist/providers/google.d.ts"

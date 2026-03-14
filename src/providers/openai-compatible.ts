@@ -22,7 +22,7 @@ export interface OpenAICompatibleCallOptions extends ProviderCallOptions {
  * This avoids importing the full `openai` package at the type level
  * while still providing type-safety for users who pass their client.
  */
-interface OpenAICompatibleClient {
+export interface OpenAICompatibleClient {
   chat: {
     completions: {
       create(params: Record<string, unknown>): Promise<{

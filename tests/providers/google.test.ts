@@ -178,7 +178,71 @@ describe("google()", () => {
     ]);
 
     expect(client._sendMessage).toHaveBeenCalledWith(
-      "What is in this image?\n[image_url:https://example.com/img.png]",
+      [
+        { text: "What is in this image?" },
+        { text: "[image_url:https://example.com/img.png]" },
+      ],
+    );
+  });
+
+  it("passes safetySettings and explicit systemInstruction", async () => {
+    const client = mockGoogleClient('{"ok": true}');
+    const provider = google(client, "gemini-2.0-flash");
+
+    await provider.call(
+      [{ role: "user", content: "hello" }],
+      {
+        safetySettings: [{ category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" }],
+        systemInstruction: { role: "system", parts: [{ text: "Follow policy" }] },
+      },
+    );
+
+    expect(client.getGenerativeModel).toHaveBeenCalledWith(
+      expect.objectContaining({
+        safetySettings: [{ category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" }],
+      }),
+    );
+    expect(client._startChat).toHaveBeenCalledWith(
+      expect.objectContaining({
+        systemInstruction: { role: "system", parts: [{ text: "Follow policy" }] },
+      }),
+    );
+  });
+
+  it("serializes tool calls into Gemini functionCall parts", async () => {
+    const client = mockGoogleClient('{"ok": true}');
+    const provider = google(client, "gemini-2.0-flash");
+
+    await provider.call([
+      {
+        role: "assistant",
+        content: "I will call a tool",
+        toolCalls: [
+          {
+            id: "call-1",
+            name: "getWeather",
+            arguments: '{"city":"Paris"}',
+          },
+        ],
+      },
+      {
+        role: "user",
+        content: "continue",
+      },
+    ]);
+
+    expect(client._startChat).toHaveBeenCalledWith(
+      expect.objectContaining({
+        history: [
+          {
+            role: "model",
+            parts: expect.arrayContaining([
+              { text: "I will call a tool" },
+              { functionCall: { name: "getWeather", args: { city: "Paris" } } },
+            ]),
+          },
+        ],
+      }),
     );
   });
 });

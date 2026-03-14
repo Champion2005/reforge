@@ -11,6 +11,7 @@ import type { ZodIssue } from "zod";
  * @property status      - Outcome classification:
  *   - `"clean"`              – The raw input was already valid JSON **and** matched the schema.
  *   - `"repaired_natively"`  – The Dirty Parser fixed syntactic issues before Zod validation succeeded.
+ *   - `"coerced_locally"`    – Semantic clamp/coerce logic repaired out-of-bound values locally.
  *   - `"failed"`             – The input could not be parsed or did not match the schema.
  */
 export interface TelemetryData {

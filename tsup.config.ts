@@ -4,6 +4,9 @@ export default defineConfig({
   entry: [
     "src/index.ts",
     "src/providers/openai-compatible.ts",
+    "src/providers/openrouter.ts",
+    "src/providers/groq.ts",
+    "src/providers/together.ts",
     "src/providers/anthropic.ts",
     "src/providers/google.ts",
   ],

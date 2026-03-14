@@ -92,4 +92,7 @@ export type {
 export type { OpenAICompatibleCallOptions } from "./providers/openai-compatible.js";
 export type { AnthropicCallOptions } from "./providers/anthropic.js";
 export type { GoogleCallOptions } from "./providers/google.js";
+export type { OpenRouterCallOptions } from "./providers/openrouter.js";
+export type { GroqCallOptions } from "./providers/groq.js";
+export type { TogetherCallOptions } from "./providers/together.js";
 

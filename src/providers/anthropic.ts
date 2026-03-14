@@ -22,6 +22,68 @@ interface AnthropicClient {
   };
 }
 
+type AnthropicContentBlock =
+  | { type: "text"; text: string; cache_control?: unknown }
+  | { type: "tool_use"; id: string; name: string; input: unknown }
+  | { type: "tool_result"; tool_use_id: string; content: string; is_error?: boolean };
+
+function toAnthropicContentBlocks(message: Message): AnthropicContentBlock[] {
+  const blocks: AnthropicContentBlock[] = [];
+
+  if (typeof message.content === "string") {
+    blocks.push({ type: "text", text: message.content });
+  } else {
+    for (const block of message.content) {
+      if (block.type === "text") {
+        blocks.push({
+          type: "text",
+          text: block.text,
+          ...(Object.prototype.hasOwnProperty.call(block, "cache_control")
+            ? { cache_control: (block as unknown as { cache_control?: unknown }).cache_control }
+            : {}),
+        });
+      } else {
+        blocks.push({
+          type: "text",
+          text: `[image_url:${block.image_url.url}]`,
+        });
+      }
+    }
+  }
+
+  if (message.toolCalls && message.toolCalls.length > 0) {
+    for (const toolCall of message.toolCalls) {
+      let parsedInput: unknown = toolCall.arguments;
+      try {
+        parsedInput = JSON.parse(toolCall.arguments);
+      } catch {
+        // Keep raw string when parsing fails.
+      }
+
+      blocks.push({
+        type: "tool_use",
+        id: toolCall.id,
+        name: toolCall.name,
+        input: parsedInput,
+      });
+    }
+  }
+
+  if (message.toolResponse) {
+    blocks.push({
+      type: "tool_result",
+      tool_use_id: message.toolResponse.toolCallId,
+      content: getMessageText({
+        role: "tool",
+        content: message.toolResponse.content,
+      }),
+      ...(message.toolResponse.isError ? { is_error: true } : {}),
+    });
+  }
+
+  return blocks;
+}
+
 /**
  * Create a `ReforgeProvider` for the Anthropic Messages API.
  *
@@ -55,7 +117,8 @@ export function anthropic(
       // Anthropic requires system messages to be passed separately
       const systemMessages = messages
         .filter((m) => m.role === "system")
-        .map((m) => getMessageText(m));
+        .map((m) => toAnthropicContentBlocks(m))
+        .flat();
       const nonSystemMsgs = messages.filter((m) => m.role !== "system");
 
       const maxTokensOption = options?.max_tokens;
@@ -66,13 +129,13 @@ export function anthropic(
         max_tokens: maxTokens,
         messages: nonSystemMsgs.map((m) => ({
           role: m.role === "assistant" ? "assistant" : "user",
-          content: getMessageText(m),
+          content: toAnthropicContentBlocks(m),
         })),
         ...extra,
       };
 
       if (systemMessages.length > 0) {
-        params.system = systemMessages.join("\n\n");
+        params.system = systemMessages;
       }
 
       const response = await client.messages.create(params);

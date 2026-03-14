@@ -117,10 +117,15 @@ export async function forge<
     });
 
     if (result.success) {
+      const successStatus = result.telemetry.status as
+        | "clean"
+        | "repaired_natively"
+        | "coerced_locally";
+
       options?.onEvent?.({
         kind: "guard_success",
         attempt,
-        status: result.telemetry.status,
+        status: successStatus,
         durationMs: result.telemetry.durationMs,
       });
 
