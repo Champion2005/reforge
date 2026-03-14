@@ -5,7 +5,7 @@ import { demoPresets, type DemoPreset } from './demo-presets'
 const presets = demoPresets
 
 /* The 3 initially-visible preset keys */
-const initialPresetKeys = ['lineAwareFailure', 'validationFailure', 'combined'] as const
+const initialPresetKeys = ['semanticClamp', 'lineAwareFailure', 'combined'] as const
 
 type GuardResultAny =
   | {
@@ -36,14 +36,15 @@ type GuardResultAny =
     }
 
 export default function Demo() {
-  const [input, setInput] = useState(presets.validationFailure.input)
-  const [schema, setSchema] = useState(presets.validationFailure.schema)
+  const [input, setInput] = useState(presets.semanticClamp.input)
+  const [schema, setSchema] = useState(presets.semanticClamp.schema)
   const [result, setResult] = useState<GuardResultAny | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [activePreset, setActivePreset] = useState<DemoPreset | null>(presets.validationFailure)
+  const [activePreset, setActivePreset] = useState<DemoPreset | null>(presets.semanticClamp)
   const [overlayOpen, setOverlayOpen] = useState(false)
   const [retryMode, setRetryMode] = useState<'compact' | 'line-aware'>('line-aware')
   const [profile, setProfile] = useState<'safe' | 'standard' | 'aggressive'>('standard')
+  const [semanticMode, setSemanticMode] = useState<'retry' | 'clamp'>('clamp')
   const [debugEnabled, setDebugEnabled] = useState(true)
 
   const loadPreset = (key: string) => {
@@ -70,6 +71,9 @@ export default function Demo() {
       const res = guard(input, zodSchema, {
         profile,
         debug: debugEnabled,
+        semanticResolution: {
+          mode: semanticMode,
+        },
         retryPrompt: {
           mode: retryMode,
           contextRadius: 1,
@@ -83,11 +87,11 @@ export default function Demo() {
   }
 
   const reset = () => {
-    setInput(presets.validationFailure.input)
-    setSchema(presets.validationFailure.schema)
+    setInput(presets.semanticClamp.input)
+    setSchema(presets.semanticClamp.schema)
     setResult(null)
     setError(null)
-    setActivePreset(presets.validationFailure)
+    setActivePreset(presets.semanticClamp)
   }
 
   const handleInputChange = (val: string) => {
@@ -193,6 +197,16 @@ export default function Demo() {
             <option value="safe">Profile: Safe</option>
             <option value="standard">Profile: Standard</option>
             <option value="aggressive">Profile: Aggressive</option>
+          </select>
+
+          <select
+            value={semanticMode}
+            onChange={(e) => setSemanticMode(e.target.value as 'retry' | 'clamp')}
+            className="h-9 rounded-lg border border-border/60 bg-card px-3 text-xs font-semibold uppercase tracking-wide text-foreground"
+            title="Semantic resolution mode"
+          >
+            <option value="retry">Semantic: Retry</option>
+            <option value="clamp">Semantic: Clamp/Coerce</option>
           </select>
 
           <label className="inline-flex h-9 items-center gap-2 rounded-lg border border-border/60 px-3 text-xs font-semibold uppercase tracking-wide text-foreground">
@@ -318,6 +332,11 @@ export default function Demo() {
                           <Sparkles className="h-3 w-3" />
                           Input was repaired before validation
                         </p>
+                      )}
+                      {result.telemetry.status === 'coerced_locally' && (
+                        <div className="mt-3 rounded-lg border border-amber-400/30 bg-amber-400/10 p-3 text-xs text-amber-200">
+                          Caught Semantic Error: target value exceeded the schema constraint. Applied local clamp/coerce resolution and returned validated data.
+                        </div>
                       )}
                     </ResultSection>
                   )}

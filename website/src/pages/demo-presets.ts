@@ -18,6 +18,24 @@ export interface DemoPreset {
 }
 
 export const demoPresets: Record<string, DemoPreset> = {
+  semanticClamp: {
+    label: 'Semantic Clamp (Age < 100)',
+    desc: 'Valid JSON, invalid business rule; clamp mode repairs locally',
+    input: `{
+  "name": "Casey",
+  "age": 154
+}`,
+    schema: `z.object({
+  name: z.string(),
+  age: z.number().positive().max(100),
+})`,
+    corrections: [
+      { description: 'Caught semantic constraint violation: age must be <= 100' },
+      { description: 'Applied local clamp protocol: 154 -> 100' },
+      { description: 'Telemetry flagged: status = coerced_locally with coerced path' },
+    ],
+  },
+
   markdown: {
     label: 'Markdown Code Fence',
     desc: 'JSON wrapped in ```json fences',

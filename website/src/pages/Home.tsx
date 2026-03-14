@@ -164,14 +164,15 @@ export default function Home() {
           </div>
 
           <h1 className="glow-text text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-            Stop paying for{' '}
-            <span className="text-primary">LLM retries.</span>
+            The intelligent{' '}
+            <span className="text-primary">semantic validation layer</span>
+            {' '}for your LLM agents.
           </h1>
 
           <p className="mx-auto mt-6 max-w-[660px] text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Raw LLM output reforged into clean data. Native JSON repair in
-            under 5ms local timings, Zod validation, and automatic retries for any LLM
-            provider — with a single unified API.
+            Reforge enforces both syntax and business constraints: native JSON repair,
+            semantic clamp or retry strategies, deterministic tool loops, and explicit model
+            fallback orchestration across OpenAI, Anthropic, Google, OpenRouter, Groq, and Together.
           </p>
 
           {/* CTAs */}

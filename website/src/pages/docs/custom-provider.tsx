@@ -10,8 +10,7 @@ const myProvider: ReforgeProvider = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         messages,
-        temperature: options?.temperature,
-        max_tokens: options?.maxTokens,
+        ...options,
       }),
     });
     const data = await res.json();

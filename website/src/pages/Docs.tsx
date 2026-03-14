@@ -81,17 +81,22 @@ if (result.success) {
 
 const openRouterCode = `import { z } from 'zod';
 import { forge } from 'reforge-ai';
-import { openaiCompatible } from 'reforge-ai/openai-compatible';
+import { openrouter } from 'reforge-ai/openrouter';
 import OpenAI from 'openai';
 
-// Same adapter — just a different baseURL
 const client = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env.OPENROUTER_API_KEY,
 });
-const provider = openaiCompatible(client, 'anthropic/claude-sonnet-4-20250514');
+const provider = openrouter(client, 'anthropic/claude-sonnet-4-20250514');
 
-const result = await forge(provider, messages, schema);`
+const result = await forge(provider, messages, schema, {
+  providerOptions: {
+    models: ['anthropic/claude-sonnet-4-20250514', 'openai/gpt-4o-mini'],
+    httpReferer: 'https://reforge-ai.dev',
+    xTitle: 'Reforge Docs Demo',
+  },
+});`
 
 const anthropicForgeCode = `import { z } from 'zod';
 import { forge } from 'reforge-ai';
@@ -138,8 +143,7 @@ const myProvider: ReforgeProvider = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         messages,
-        temperature: options?.temperature,
-        max_tokens: options?.maxTokens,
+        ...options,
       }),
     });
     const data = await res.json();
@@ -177,31 +181,29 @@ interface TelemetryData {
 }`
 
 const forgeApiTypes = `// ── Provider Layer: forge() ──
-async function forge<T extends z.ZodTypeAny>(
-  provider: ReforgeProvider,
+async function forge<T extends z.ZodTypeAny, TNativeOptions extends Record<string, unknown>>(
+  provider: ReforgeProvider<TNativeOptions> | ReforgeProvider<TNativeOptions>[],
   messages: Message[],
   schema: T,
-  options?: ForgeOptions
+  options?: ForgeOptions<TNativeOptions>
 ): Promise<ForgeResult<z.infer<T>>>
 
-interface ReforgeProvider {
-  call(messages: Message[], options?: ProviderCallOptions): Promise<string>;
+interface ReforgeProvider<TNativeOptions = Record<string, unknown>> {
+  call(messages: Message[], options?: TNativeOptions): Promise<string>;
 }
 
 interface Message {
-  role: 'system' | 'user' | 'assistant';
-  content: string;
+  role: 'system' | 'user' | 'assistant' | 'tool';
+  content: string | Array<{ type: 'text' | 'image_url'; [k: string]: unknown }>;
 }
 
-interface ForgeOptions {
+interface ForgeOptions<TNativeOptions> {
   maxRetries?: number;         // Default: 3
-  providerOptions?: ProviderCallOptions;
-}
-
-interface ProviderCallOptions {
-  temperature?: number;
-  maxTokens?: number;
-  [key: string]: unknown;      // Pass-through for provider-specific options
+  providerOptions?: TNativeOptions;
+  tools?: Record<string, ReforgeTool>;
+  toolTimeoutMs?: number;
+  maxAgentIterations?: number;
+  onChunk?: (text: string) => void;
 }
 
 type ForgeResult<T> = ForgeSuccess<T> | ForgeFailure;
@@ -216,16 +218,22 @@ interface ForgeSuccess<T> {
 interface ForgeFailure {
   success: false;
   errors: ZodIssue[];
+  retryPrompt: string;
   telemetry: ForgeTelemetry;
 }
 
 interface ForgeTelemetry extends TelemetryData {
   attempts: number;
   totalDurationMs: number;
+  networkDurationMs: number;
+  toolExecutionDurationMs: number;
 }
 
 // ── Adapter factories ──
 function openaiCompatible(client: OpenAIClient, model: string): ReforgeProvider;
+function openrouter(client: OpenAIClient, model: string): ReforgeProvider;
+function groq(client: OpenAIClient, model: string): ReforgeProvider;
+function together(client: OpenAIClient, model: string): ReforgeProvider;
 function anthropic(client: AnthropicClient, model: string): ReforgeProvider;
 function google(client: GoogleClient, model: string): ReforgeProvider;`
 
@@ -330,21 +338,21 @@ export default function Docs() {
               <ul className="space-y-5 text-sm text-muted-foreground">
                 <li className="flex flex-col gap-1.5">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-primary font-bold flex-shrink-0">1.</span>
+                    <span className="text-primary font-bold shrink-0">1.</span>
                     <strong className="text-foreground">Parses & Repairs</strong>
                   </div>
                   <div className="pl-6 text-muted-foreground">Fixes markdown fences, trailing commas, unquoted keys, single quotes, escaped quote anomalies, and truncated brackets.</div>
                 </li>
                 <li className="flex flex-col gap-1.5">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-primary font-bold flex-shrink-0">2.</span>
+                    <span className="text-primary font-bold shrink-0">2.</span>
                     <strong className="text-foreground">Validates & Coerces</strong>
                   </div>
                   <div className="pl-6 text-muted-foreground">Runs your Zod schema with automatic type coercion (e.g., string <InlineCode>"true"</InlineCode> → boolean <InlineCode>true</InlineCode>).</div>
                 </li>
                 <li className="flex flex-col gap-1.5">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-primary font-bold flex-shrink-0">3.</span>
+                    <span className="text-primary font-bold shrink-0">3.</span>
                     <strong className="text-foreground">Generates Retry Prompts</strong>
                   </div>
                   <div className="pl-6 text-muted-foreground">When validation fails, generates a targeted retry string with specific errors — no schema re-sending needed.</div>
@@ -402,6 +410,15 @@ export default function Docs() {
                 <li>Repeats up to <InlineCode>maxRetries</InlineCode> (default: 3)</li>
                 <li>If all retries exhausted — returns failure with accumulated errors</li>
               </ol>
+            </div>
+            <div className="rounded-xl border border-border/50 bg-card/40 p-5">
+              <p className="text-sm font-semibold text-foreground mb-3">Advanced orchestration:</p>
+              <ul className="list-disc space-y-2 pl-6 text-sm text-muted-foreground">
+                <li>Semantic strategy: strict retry or local clamp/coerce for out-of-bound values</li>
+                <li>Deterministic fallback arrays for same-vendor model failover on network failures</li>
+                <li>Tool loop execution with Zod-validated tool args, timeout guards, and circuit breaking</li>
+                <li><InlineCode>onChunk</InlineCode> for user-facing stream text (tool-call payloads suppressed)</li>
+              </ul>
             </div>
             <p className="text-muted-foreground leading-relaxed">
               <InlineCode>forge()</InlineCode> never mutates your original messages array. Provider errors (network failures, auth errors) bubble up as exceptions.

@@ -39,6 +39,35 @@ export default function Concepts() {
           <InlineCode>"42"</InlineCode> to number <InlineCode>42</InlineCode>, and ISO date strings to <InlineCode>Date</InlineCode>
           when the schema expects <InlineCode>z.date()</InlineCode>.
         </p>
+        <p className="mt-3 text-muted-foreground leading-relaxed">
+          You can choose a semantic resolution strategy: <InlineCode>retry</InlineCode> for strict regeneration,
+          or <InlineCode>clamp</InlineCode> to coerce out-of-range values locally with
+          telemetry flag <InlineCode>coerced_locally</InlineCode>.
+        </p>
+      </ConceptCard>
+
+      <ConceptCard title="Semantic vs. Syntactic Guardrails">
+        <p className="text-muted-foreground leading-relaxed">
+          Syntactic guardrails repair malformed JSON shape (<InlineCode>{`{name: "x",}`}</InlineCode>).
+          Semantic guardrails enforce business constraints after parsing (for example,
+          <InlineCode>age &lt;= 100</InlineCode>). Reforge supports both in one pipeline.
+        </p>
+      </ConceptCard>
+
+      <ConceptCard title="Model Fallback Orchestration">
+        <p className="text-muted-foreground leading-relaxed">
+          <InlineCode>forge()</InlineCode> can accept a same-vendor fallback chain.
+          Semantic failures consume retry budget on the active provider. Intrinsic network failures
+          (rate limits, timeouts, server errors) immediately fail over to the next provider in the list.
+        </p>
+      </ConceptCard>
+
+      <ConceptCard title="Agent Tool Loops">
+        <p className="text-muted-foreground leading-relaxed">
+          Register local tools with Zod-validated arguments and execution callbacks.
+          <InlineCode>forge()</InlineCode> can execute tool calls, feed results back to the model,
+          and continue deterministically with circuit breaking via <InlineCode>maxAgentIterations</InlineCode>.
+        </p>
       </ConceptCard>
 
       <ConceptCard title="Retry Prompt Generation">
