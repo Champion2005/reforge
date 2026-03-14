@@ -8,7 +8,7 @@ import type { Message } from "../../src/providers/types.js";
 function mockAnthropicClient(text: string | null = '{"result": true}') {
   return {
     messages: {
-      create: vi.fn(async () => ({
+      create: vi.fn(async (_params: Record<string, unknown>) => ({
         content: text !== null ? [{ type: "text", text }] : [{ type: "image" }],
       })),
     },
@@ -47,7 +47,7 @@ describe("anthropic()", () => {
 
     await provider.call(messages);
 
-    const callArgs = client.messages.create.mock.calls[0]?.[0] as Record<string, unknown>;
+    const callArgs = (client.messages.create.mock.calls.at(0)?.[0] ?? {}) as Record<string, unknown>;
     expect(callArgs).toBeDefined();
     expect(callArgs.system).toBeUndefined();
     expect(callArgs.messages).toEqual([{ role: "user", content: "Hello" }]);
@@ -84,12 +84,12 @@ describe("anthropic()", () => {
     );
   });
 
-  it("uses custom maxTokens when provided", async () => {
+  it("uses custom max_tokens when provided", async () => {
     const client = mockAnthropicClient('{"ok": true}');
     const provider = anthropic(client, "claude-sonnet-4-20250514");
 
     await provider.call([{ role: "user", content: "Hello" }], {
-      maxTokens: 8192,
+      max_tokens: 8192,
     });
 
     expect(client.messages.create).toHaveBeenCalledWith(
@@ -164,6 +164,32 @@ describe("anthropic()", () => {
       expect.objectContaining({
         system: "Rule 1\n\nRule 2",
         messages: [{ role: "user", content: "Hello" }],
+      }),
+    );
+  });
+
+  it("normalizes multimodal blocks into text for Anthropic messages", async () => {
+    const client = mockAnthropicClient('{"ok": true}');
+    const provider = anthropic(client, "claude-sonnet-4-20250514");
+
+    await provider.call([
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "Analyze the attached input" },
+          { type: "image_url", image_url: { url: "https://example.com/img.jpg" } },
+        ],
+      },
+    ]);
+
+    expect(client.messages.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        messages: [
+          {
+            role: "user",
+            content: "Analyze the attached input\n[image_url:https://example.com/img.jpg]",
+          },
+        ],
       }),
     );
   });

@@ -12,6 +12,7 @@ import JsonSchemaPromptsNativeRepair from './pages/blog/json-schema-prompts-nati
 import ZodLlmsResilientPipelines from './pages/blog/zod-llms-resilient-pipelines'
 import StructuredOutputAnyLLM from './pages/blog/structured-output-any-llm-typescript'
 import ReliableAIAgents from './pages/blog/reliable-ai-agents-retry-validation'
+import ReforgeTimingBenchmarkPost from './pages/blog/reforge-timing-benchmark-process-findings'
 
 // Doc pages
 import DocsIntroduction from './pages/docs/introduction'
@@ -76,6 +77,7 @@ export default function App() {
           <Route path="/blog/zod-llms-resilient-pipelines" element={<ZodLlmsResilientPipelines />} />
           <Route path="/blog/structured-output-any-llm-typescript" element={<StructuredOutputAnyLLM />} />
           <Route path="/blog/reliable-ai-agents-retry-validation" element={<ReliableAIAgents />} />
+          <Route path="/blog/reforge-timing-benchmark-process-findings" element={<ReforgeTimingBenchmarkPost />} />
         </Routes>
       </main>
       <Footer />

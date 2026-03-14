@@ -1,4 +1,5 @@
 import type { ZodIssue } from "zod";
+import type { ZodTypeAny, infer as ZodInfer } from "zod";
 import type { TelemetryData, GuardOptions } from "../types.js";
 
 // ---------------------------------------------------------------------------
@@ -9,21 +10,46 @@ import type { TelemetryData, GuardOptions } from "../types.js";
 /**
  * A message in the LLM conversation format.
  */
+export interface MessageTextBlock {
+  type: "text";
+  text: string;
+}
+
+export interface MessageImageUrlBlock {
+  type: "image_url";
+  image_url: {
+    url: string;
+    detail?: "auto" | "low" | "high";
+  };
+}
+
+export type MessageContentBlock = MessageTextBlock | MessageImageUrlBlock;
+export type MessageContent = string | MessageContentBlock[];
+
+export interface ReforgeToolCall {
+  id: string;
+  name: string;
+  arguments: string;
+}
+
+export interface ReforgeToolResponse {
+  toolCallId: string;
+  name: string;
+  content: MessageContent;
+  isError?: boolean;
+}
+
 export interface Message {
-  role: "system" | "user" | "assistant";
-  content: string;
+  role: "system" | "user" | "assistant" | "tool";
+  content: MessageContent;
+  toolCalls?: ReforgeToolCall[];
+  toolResponse?: ReforgeToolResponse;
 }
 
 /**
- * Options passed through to the provider SDK call.
- * `temperature` and `maxTokens` are the common subset; any extra
- * key-value pairs are forwarded as-is.
+ * Backwards-compatible alias for generic native provider options.
  */
-export interface ProviderCallOptions {
-  temperature?: number;
-  maxTokens?: number;
-  [key: string]: unknown;
-}
+export type ProviderCallOptions = Record<string, unknown>;
 
 /**
  * The minimal interface every provider adapter must implement.
@@ -32,8 +58,17 @@ export interface ProviderCallOptions {
  * returns an object satisfying this interface. Users can also implement it
  * directly for any provider not covered by the built-ins.
  */
-export interface ReforgeProvider {
-  call(messages: Message[], options?: ProviderCallOptions): Promise<string>;
+export interface ReforgeProvider<
+  TNativeOptions extends Record<string, unknown> = ProviderCallOptions,
+> {
+  readonly id?: string;
+  call(messages: Message[], options?: TNativeOptions): Promise<string>;
+}
+
+export interface ReforgeTool<TSchema extends ZodTypeAny = ZodTypeAny> {
+  description?: string;
+  schema: TSchema;
+  execute: (args: ZodInfer<TSchema>) => Promise<unknown> | unknown;
 }
 
 export interface ForgeFailurePayload {
@@ -41,13 +76,15 @@ export interface ForgeFailurePayload {
   retryPrompt: string;
 }
 
-export interface ForgeRetryPolicy {
+export interface ForgeRetryPolicy<
+  TNativeOptions extends Record<string, unknown> = ProviderCallOptions,
+> {
   maxRetries?: number;
   shouldRetry?: (failure: ForgeFailurePayload, attempt: number) => boolean;
   mutateProviderOptions?: (
     attempt: number,
-    baseOptions: ProviderCallOptions | undefined,
-  ) => ProviderCallOptions;
+    baseOptions: TNativeOptions | undefined,
+  ) => TNativeOptions;
 }
 
 export type ForgeEvent =
@@ -86,15 +123,21 @@ export type ForgeEvent =
 /**
  * Options for the `forge()` orchestrator.
  */
-export interface ForgeOptions {
+export interface ForgeOptions<
+  TNativeOptions extends Record<string, unknown> = ProviderCallOptions,
+> {
   /** Maximum number of retry attempts after the initial call. Default: 3. */
   maxRetries?: number;
   /** Optional retry policy hooks for advanced retry control. */
-  retryPolicy?: ForgeRetryPolicy;
+  retryPolicy?: ForgeRetryPolicy<TNativeOptions>;
   /** Options passed through to the provider on every call. */
-  providerOptions?: ProviderCallOptions;
+  providerOptions?: TNativeOptions;
   /** Forwarded to `guard()` on every attempt. */
   guardOptions?: GuardOptions;
+  /** Local tools exposed to the orchestrator. */
+  tools?: Record<string, ReforgeTool>;
+  /** Hard timeout applied to local tool execution. */
+  toolTimeoutMs?: number;
   /** Callback invoked after a failed attempt that will be retried. */
   onRetry?: (attempt: number, failure: { errors: ZodIssue[]; retryPrompt: string }) => void;
   /** Structured event stream for observability. */
@@ -120,6 +163,13 @@ export interface ForgeAttemptDetail {
   status: "clean" | "repaired_natively" | "failed";
 }
 
+export interface ForgeProviderHop {
+  providerId: string;
+  attempt: number;
+  succeeded: boolean;
+  durationMs: number;
+}
+
 /**
  * Telemetry data from a `forge()` run. Extends the core `TelemetryData`
  * with multi-attempt tracking.
@@ -129,6 +179,12 @@ export interface ForgeTelemetry extends TelemetryData {
   attempts: number;
   /** Wall-clock time across all attempts (including provider latency). */
   totalDurationMs: number;
+  /** Time spent inside provider calls. */
+  networkDurationMs: number;
+  /** Time spent executing local tools. */
+  toolExecutionDurationMs: number;
+  /** Ordered provider hops made by forge(). */
+  providerHops: ForgeProviderHop[];
   /** Per-attempt guard telemetry snapshots. */
   attemptDetails: ForgeAttemptDetail[];
 }

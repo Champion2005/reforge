@@ -330,6 +330,32 @@ describe("forge()", () => {
     }
   });
 
+  it("tracks expanded telemetry fields for provider hops and network/tool timings", async () => {
+    const provider = mockProvider([
+      "not json",
+      '{"name": "Helena", "age": 27}',
+    ]);
+
+    const result = await forge(
+      provider,
+      [{ role: "user", content: "Return a user." }],
+      UserSchema,
+    );
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.telemetry.networkDurationMs).toBeGreaterThanOrEqual(0);
+      expect(result.telemetry.toolExecutionDurationMs).toBe(0);
+      expect(result.telemetry.providerHops).toHaveLength(2);
+      expect(result.telemetry.providerHops[0]?.succeeded).toBe(false);
+      expect(result.telemetry.providerHops[1]?.succeeded).toBe(true);
+      expect(result.telemetry.providerHops[0]?.providerId).toBe("provider-0");
+      expect(result.telemetry.providerHops[1]?.providerId).toBe("provider-0");
+      expect(result.telemetry.providerHops[0]?.attempt).toBe(1);
+      expect(result.telemetry.providerHops[1]?.attempt).toBe(2);
+    }
+  });
+
   it("invokes onRetry callback for each retriable failure", async () => {
     const provider = mockProvider([
       "not json",

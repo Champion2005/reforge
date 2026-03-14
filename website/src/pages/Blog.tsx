@@ -3,6 +3,14 @@ import { Calendar, Clock, ArrowRight } from 'lucide-react'
 
 export const blogPosts = [
   {
+    slug: 'reforge-timing-benchmark-process-findings',
+    title: 'How We Benchmarked Reforge End-to-End: Capture, Analysis, and Findings',
+    excerpt:
+      'A full walkthrough of the new timing workflow: source-generated artifacts, one-command benchmarking, consolidated analysis, and what the numbers reveal about guard() and forge().',
+    date: 'March 14, 2026',
+    readingTime: '10 min read',
+  },
+  {
     slug: 'structured-output-any-llm-typescript',
     title: 'How to Get Structured Output from Any LLM in 5 Lines of TypeScript',
     excerpt:

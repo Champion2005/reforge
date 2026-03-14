@@ -8,6 +8,7 @@ import type {
   ForgeAttemptDetail,
   ForgeFailurePayload,
   ProviderCallOptions,
+  ForgeProviderHop,
 } from "./types.js";
 import { guard } from "../guard.js";
 import { createTimer } from "../telemetry.js";
@@ -29,14 +30,16 @@ function normalizeMaxRetries(value: number | undefined): number {
   return Math.max(0, Math.floor(value));
 }
 
-function resolveMaxRetries(options?: ForgeOptions): number {
+function resolveMaxRetries<TNativeOptions extends Record<string, unknown>>(
+  options?: ForgeOptions<TNativeOptions>,
+): number {
   return normalizeMaxRetries(options?.retryPolicy?.maxRetries ?? options?.maxRetries);
 }
 
-function resolveProviderOptions(
+function resolveProviderOptions<TNativeOptions extends Record<string, unknown>>(
   attempt: number,
-  options?: ForgeOptions,
-): ProviderCallOptions | undefined {
+  options?: ForgeOptions<TNativeOptions>,
+): TNativeOptions | undefined {
   const base = options?.providerOptions;
   const mutate = options?.retryPolicy?.mutateProviderOptions;
   if (!mutate) return base;
@@ -55,13 +58,16 @@ function resolveProviderOptions(
  * @param options   - Optional configuration (maxRetries, providerOptions).
  * @returns A `ForgeResult<z.infer<T>>` with telemetry.
  */
-export async function forge<T extends ZodTypeAny>(
-  provider: ReforgeProvider,
+export async function forge<
+  T extends ZodTypeAny,
+  TNativeOptions extends Record<string, unknown> = ProviderCallOptions,
+>(
+  provider: ReforgeProvider<TNativeOptions>,
   messages: Message[],
   schema: T,
-  options?: ForgeOptions,
+  options?: ForgeOptions<TNativeOptions>,
 ): Promise<ForgeResult<ZodInfer<T>>> {
-  const maxRetries = resolveMaxRetries(options);
+  const maxRetries = resolveMaxRetries<TNativeOptions>(options);
   const totalAttempts = 1 + maxRetries;
   const timer = createTimer();
 
@@ -75,13 +81,25 @@ export async function forge<T extends ZodTypeAny>(
     status: "failed",
   };
   const attemptDetails: ForgeAttemptDetail[] = [];
+  const providerHops: ForgeProviderHop[] = [];
+  let networkDurationMs = 0;
+  let toolExecutionDurationMs = 0;
 
   for (let attempt = 1; attempt <= totalAttempts; attempt++) {
     options?.onEvent?.({ kind: "attempt_start", attempt, totalAttempts });
 
     // Let provider errors bubble — they are the user's responsibility
-    const providerOptions = resolveProviderOptions(attempt, options);
+    const providerOptions = resolveProviderOptions<TNativeOptions>(attempt, options);
+    const callStartedAt = Date.now();
     const raw = await provider.call(conversation, providerOptions);
+    const callDurationMs = Date.now() - callStartedAt;
+    networkDurationMs += callDurationMs;
+    providerHops.push({
+      providerId: provider.id ?? "provider-0",
+      attempt,
+      succeeded: false,
+      durationMs: callDurationMs,
+    });
     const wouldTruncate = raw.length > RETRY_ASSISTANT_MAX_CHARS;
     options?.onEvent?.({
       kind: "provider_response",
@@ -114,6 +132,13 @@ export async function forge<T extends ZodTypeAny>(
         status: result.telemetry.status,
         attempts: attempt,
         totalDurationMs: timer.stop(),
+        networkDurationMs,
+        toolExecutionDurationMs,
+        providerHops: providerHops.map((hop, idx) =>
+          idx === providerHops.length - 1
+            ? { ...hop, succeeded: true }
+            : hop,
+        ),
         attemptDetails,
       };
 
@@ -182,6 +207,9 @@ export async function forge<T extends ZodTypeAny>(
     status: "failed",
     attempts: attemptDetails.length,
     totalDurationMs: timer.stop(),
+    networkDurationMs,
+    toolExecutionDurationMs,
+    providerHops,
     attemptDetails,
   };
 

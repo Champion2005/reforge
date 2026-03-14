@@ -1,5 +1,21 @@
-import type { ReforgeProvider, Message, ProviderCallOptions } from "./types.js";
+import type {
+  ReforgeProvider,
+  Message,
+  ProviderCallOptions,
+  MessageContent,
+} from "./types.js";
 import { filterReforgeKeys } from "./utils.js";
+
+export interface OpenAICompatibleCallOptions extends ProviderCallOptions {
+  temperature?: number;
+  max_tokens?: number;
+  response_format?: unknown;
+  tools?: unknown;
+  tool_choice?: unknown;
+  reasoning_effort?: "low" | "medium" | "high";
+  parallel_tool_calls?: boolean;
+  stream?: boolean;
+}
 
 /**
  * Minimal subset of the `OpenAI` client used by the adapter.
@@ -100,27 +116,44 @@ function extractTextFromUnknown(value: unknown): string | undefined {
 export function openaiCompatible(
   client: OpenAICompatibleClient,
   model: string,
-): ReforgeProvider {
+): ReforgeProvider<OpenAICompatibleCallOptions> {
+  function toOpenAIContent(content: MessageContent): unknown {
+    if (typeof content === "string") {
+      return content;
+    }
+
+    return content.map((block) => {
+      if (block.type === "text") {
+        return { type: "text", text: block.text };
+      }
+
+      return {
+        type: "image_url",
+        image_url: {
+          url: block.image_url.url,
+          ...(block.image_url.detail ? { detail: block.image_url.detail } : {}),
+        },
+      };
+    });
+  }
+
   return {
+    id: `openai-compatible:${model}`,
     async call(
       messages: Message[],
-      options?: ProviderCallOptions,
+      options?: OpenAICompatibleCallOptions,
     ): Promise<string> {
       const extra = filterReforgeKeys(options);
 
       const params: Record<string, unknown> = {
         model,
-        messages: messages.map((m) => ({ role: m.role, content: m.content })),
+        messages: messages.map((m) => ({
+          role: m.role,
+          content: toOpenAIContent(m.content),
+          ...(m.toolCalls && m.toolCalls.length > 0 ? { tool_calls: m.toolCalls } : {}),
+        })),
         ...extra,
       };
-
-      if (options?.temperature !== undefined) {
-        params.temperature = options.temperature;
-      }
-
-      if (options?.maxTokens !== undefined) {
-        params.max_tokens = options.maxTokens;
-      }
 
       const response = await client.chat.completions.create(params);
       const choices = Array.isArray(response.choices)

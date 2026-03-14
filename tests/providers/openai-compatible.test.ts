@@ -9,7 +9,7 @@ function mockOpenAIClient(content: unknown = '{"result": true}') {
   return {
     chat: {
       completions: {
-        create: vi.fn(async () => ({
+        create: vi.fn(async (_params: Record<string, unknown>) => ({
           choices: [
             {
               message: { content },
@@ -29,9 +29,9 @@ describe("openaiCompatible()", () => {
 
   it("calls client.chat.completions.create with correct params", async () => {
     const client = mockOpenAIClient('{"ok": true}');
-    const provider = openaiCompatible(client, "gpt-4o");
+    const provider = openaiCompatible(client as any, "gpt-4o");
 
-    await provider.call(messages, { temperature: 0.7, maxTokens: 500 });
+    await provider.call(messages, { temperature: 0.7, max_tokens: 500 });
 
     expect(client.chat.completions.create).toHaveBeenCalledWith({
       model: "gpt-4o",
@@ -46,7 +46,7 @@ describe("openaiCompatible()", () => {
 
   it("returns the response content string", async () => {
     const client = mockOpenAIClient('{"name": "Alice"}');
-    const provider = openaiCompatible(client, "gpt-4o");
+    const provider = openaiCompatible(client as any, "gpt-4o");
 
     const result = await provider.call(messages);
 
@@ -57,7 +57,7 @@ describe("openaiCompatible()", () => {
     const client = mockOpenAIClient([
       { type: "text", text: '{"name": "Array"}' },
     ]);
-    const provider = openaiCompatible(client, "gpt-4o");
+    const provider = openaiCompatible(client as any, "gpt-4o");
 
     const result = await provider.call(messages);
 
@@ -79,7 +79,7 @@ describe("openaiCompatible()", () => {
         },
       },
     };
-    const provider = openaiCompatible(client, "gpt-4o");
+    const provider = openaiCompatible(client as any, "gpt-4o");
 
     const result = await provider.call(messages);
 
@@ -88,14 +88,14 @@ describe("openaiCompatible()", () => {
 
   it("throws on empty response", async () => {
     const client = mockOpenAIClient(null);
-    const provider = openaiCompatible(client, "gpt-4o");
+    const provider = openaiCompatible(client as any, "gpt-4o");
 
     await expect(provider.call(messages)).rejects.toThrow(/empty response/i);
   });
 
   it("throws on empty string response", async () => {
     const client = mockOpenAIClient("");
-    const provider = openaiCompatible(client, "gpt-4o");
+    const provider = openaiCompatible(client as any, "gpt-4o");
 
     await expect(provider.call(messages)).rejects.toThrow(/empty response/i);
   });
@@ -108,7 +108,7 @@ describe("openaiCompatible()", () => {
         },
       },
     };
-    const provider = openaiCompatible(client, "gpt-4o");
+    const provider = openaiCompatible(client as any, "gpt-4o");
 
     await expect(provider.call(messages)).rejects.toThrow(/empty response/i);
   });
@@ -121,7 +121,7 @@ describe("openaiCompatible()", () => {
         },
       },
     };
-    const provider = openaiCompatible(client, "gpt-4o");
+    const provider = openaiCompatible(client as any, "gpt-4o");
 
     await expect(provider.call(messages)).rejects.toThrow(/empty response/i);
   });
@@ -132,7 +132,7 @@ describe("openaiCompatible()", () => {
 
     await provider.call(messages, {
       temperature: 0.5,
-      maxTokens: 200,
+      max_tokens: 200,
       response_format: { type: "json_object" },
     });
 
@@ -165,21 +165,44 @@ describe("openaiCompatible()", () => {
 
     await provider.call(messages, { temperature: 0.2 });
 
-    const params = client.chat.completions.create.mock.calls[0]?.[0] as Record<string, unknown>;
+    const params = (client.chat.completions.create.mock.calls.at(0)?.[0] ?? {}) as Record<string, unknown>;
     expect(params).toBeDefined();
     expect(params.temperature).toBe(0.2);
     expect(params.max_tokens).toBeUndefined();
   });
 
-  it("omits temperature when only maxTokens is provided", async () => {
+  it("passes max_tokens when provided", async () => {
     const client = mockOpenAIClient('{"ok": true}');
     const provider = openaiCompatible(client, "gpt-4o");
 
-    await provider.call(messages, { maxTokens: 123 });
+    await provider.call(messages, { max_tokens: 123 });
 
-    const params = client.chat.completions.create.mock.calls[0]?.[0] as Record<string, unknown>;
+    const params = (client.chat.completions.create.mock.calls.at(0)?.[0] ?? {}) as Record<string, unknown>;
     expect(params).toBeDefined();
     expect(params.max_tokens).toBe(123);
     expect(params.temperature).toBeUndefined();
+  });
+
+  it("passes multimodal content blocks through to OpenAI shape", async () => {
+    const client = mockOpenAIClient('{"ok": true}');
+    const provider = openaiCompatible(client, "gpt-4o");
+
+    await provider.call([
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "Describe this image" },
+          { type: "image_url", image_url: { url: "https://example.com/cat.png", detail: "high" } },
+        ],
+      },
+    ]);
+
+    const params = (client.chat.completions.create.mock.calls.at(0)?.[0] ?? {}) as Record<string, unknown>;
+    expect(params).toBeDefined();
+    const sentMessages = params.messages as Array<Record<string, unknown>>;
+    expect(sentMessages[0]?.content).toEqual([
+      { type: "text", text: "Describe this image" },
+      { type: "image_url", image_url: { url: "https://example.com/cat.png", detail: "high" } },
+    ]);
   });
 });

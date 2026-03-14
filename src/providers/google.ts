@@ -1,17 +1,18 @@
 import type { ReforgeProvider, Message, ProviderCallOptions } from "./types.js";
+import { getMessageText } from "./utils.js";
+
+export interface GoogleCallOptions extends ProviderCallOptions {
+  generationConfig?: Record<string, unknown>;
+  modelOptions?: Record<string, unknown>;
+  chatOptions?: Record<string, unknown>;
+}
 
 /**
  * Minimal subset of the Google Generative AI client used by the adapter.
  */
 interface GoogleGenerativeAIClient {
-  getGenerativeModel(params: {
-    model: string;
-    generationConfig?: Record<string, unknown>;
-  }): {
-    startChat(params: {
-      history?: Array<{ role: string; parts: Array<{ text: string }> }>;
-      systemInstruction?: { role: string; parts: Array<{ text: string }> };
-    }): {
+  getGenerativeModel(params: Record<string, unknown>): {
+    startChat(params: Record<string, unknown>): {
       sendMessage(
         message: string,
       ): Promise<{ response: { text(): string } }>;
@@ -42,34 +43,37 @@ interface GoogleGenerativeAIClient {
 export function google(
   client: GoogleGenerativeAIClient,
   model: string,
-): ReforgeProvider {
+): ReforgeProvider<GoogleCallOptions> {
   return {
+    id: `google:${model}`,
     async call(
       messages: Message[],
-      options?: ProviderCallOptions,
+      options?: GoogleCallOptions,
     ): Promise<string> {
-      const generationConfig: Record<string, unknown> = {};
-      if (options?.temperature !== undefined) {
-        generationConfig.temperature = options.temperature;
-      }
-      if (options?.maxTokens !== undefined) {
-        generationConfig.maxOutputTokens = options.maxTokens;
-      }
+      const generationConfig =
+        options?.generationConfig && typeof options.generationConfig === "object"
+          ? (options.generationConfig as Record<string, unknown>)
+          : undefined;
+      const modelOptions =
+        options?.modelOptions && typeof options.modelOptions === "object"
+          ? (options.modelOptions as Record<string, unknown>)
+          : undefined;
 
       const genModel = client.getGenerativeModel({
         model,
-        generationConfig,
+        ...(generationConfig ? { generationConfig } : {}),
+        ...(modelOptions ?? {}),
       });
 
       // Convert messages to Gemini format
       const systemMessages = messages
         .filter((m) => m.role === "system")
-        .map((m) => m.content);
+        .map((m) => getMessageText(m));
       const nonSystemMsgs = messages.filter((m) => m.role !== "system");
 
       const history = nonSystemMsgs.slice(0, -1).map((m) => ({
         role: m.role === "assistant" ? "model" : "user",
-        parts: [{ text: m.content }],
+        parts: [{ text: getMessageText(m) }],
       }));
 
       const lastMsg = nonSystemMsgs[nonSystemMsgs.length - 1];
@@ -79,6 +83,9 @@ export function google(
 
       const chat = genModel.startChat({
         history,
+        ...(options?.chatOptions && typeof options.chatOptions === "object"
+          ? (options.chatOptions as Record<string, unknown>)
+          : {}),
         systemInstruction: systemMessages.length > 0
           ? {
               role: "user",
@@ -87,7 +94,7 @@ export function google(
           : undefined,
       });
 
-      const result = await chat.sendMessage(lastMsg.content);
+      const result = await chat.sendMessage(getMessageText(lastMsg));
       const text = result.response.text();
       if (!text) {
         throw new Error("Google returned an empty response");

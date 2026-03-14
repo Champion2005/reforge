@@ -64,8 +64,15 @@ export type {
 } from "./types.js";
 export type {
   Message,
+  MessageContent,
+  MessageContentBlock,
+  MessageTextBlock,
+  MessageImageUrlBlock,
+  ReforgeToolCall,
+  ReforgeToolResponse,
   ProviderCallOptions,
   ReforgeProvider,
+  ReforgeTool,
   ForgeOptions,
   ForgeRetryPolicy,
   ForgeEvent,
@@ -74,8 +81,12 @@ export type {
   ForgeFallbackOptions,
   ForgeTelemetry,
   ForgeAttemptDetail,
+  ForgeProviderHop,
   ForgeResult,
   ForgeSuccess,
   ForgeFailure,
 } from "./providers/types.js";
+export type { OpenAICompatibleCallOptions } from "./providers/openai-compatible.js";
+export type { AnthropicCallOptions } from "./providers/anthropic.js";
+export type { GoogleCallOptions } from "./providers/google.js";
 

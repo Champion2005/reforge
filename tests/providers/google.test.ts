@@ -118,13 +118,15 @@ describe("google()", () => {
     ).rejects.toThrow("No user message provided");
   });
 
-  it("passes temperature and maxOutputTokens to generationConfig", async () => {
+  it("passes native generationConfig through to getGenerativeModel", async () => {
     const client = mockGoogleClient('{"ok": true}');
     const provider = google(client, "gemini-2.0-flash");
 
     await provider.call([{ role: "user", content: "Hello" }], {
-      temperature: 0.5,
-      maxTokens: 2000,
+      generationConfig: {
+        temperature: 0.5,
+        maxOutputTokens: 2000,
+      },
     });
 
     expect(client.getGenerativeModel).toHaveBeenCalledWith({
@@ -159,5 +161,24 @@ describe("google()", () => {
       expect.objectContaining({ history: [] }),
     );
     expect(client._sendMessage).toHaveBeenCalledWith("Just one");
+  });
+
+  it("normalizes multimodal last message into text before sendMessage", async () => {
+    const client = mockGoogleClient('{"ok": true}');
+    const provider = google(client, "gemini-2.0-flash");
+
+    await provider.call([
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "What is in this image?" },
+          { type: "image_url", image_url: { url: "https://example.com/img.png" } },
+        ],
+      },
+    ]);
+
+    expect(client._sendMessage).toHaveBeenCalledWith(
+      "What is in this image?\n[image_url:https://example.com/img.png]",
+    );
   });
 });

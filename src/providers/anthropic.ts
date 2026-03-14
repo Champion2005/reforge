@@ -1,5 +1,15 @@
 import type { ReforgeProvider, Message, ProviderCallOptions } from "./types.js";
-import { filterReforgeKeys } from "./utils.js";
+import { filterReforgeKeys, getMessageText } from "./utils.js";
+
+export interface AnthropicCallOptions extends ProviderCallOptions {
+  max_tokens?: number;
+  temperature?: number;
+  top_p?: number;
+  top_k?: number;
+  thinking?: unknown;
+  tool_choice?: unknown;
+  tools?: unknown;
+}
 
 /**
  * Minimal subset of the Anthropic client used by the adapter.
@@ -33,36 +43,36 @@ interface AnthropicClient {
 export function anthropic(
   client: AnthropicClient,
   model: string,
-): ReforgeProvider {
+): ReforgeProvider<AnthropicCallOptions> {
   return {
+    id: `anthropic:${model}`,
     async call(
       messages: Message[],
-      options?: ProviderCallOptions,
+      options?: AnthropicCallOptions,
     ): Promise<string> {
       const extra = filterReforgeKeys(options);
 
       // Anthropic requires system messages to be passed separately
       const systemMessages = messages
         .filter((m) => m.role === "system")
-        .map((m) => m.content);
+        .map((m) => getMessageText(m));
       const nonSystemMsgs = messages.filter((m) => m.role !== "system");
+
+      const maxTokensOption = options?.max_tokens;
+      const maxTokens = typeof maxTokensOption === "number" ? maxTokensOption : 4096;
 
       const params: Record<string, unknown> = {
         model,
-        max_tokens: options?.maxTokens ?? 4096,
+        max_tokens: maxTokens,
         messages: nonSystemMsgs.map((m) => ({
-          role: m.role as "user" | "assistant",
-          content: m.content,
+          role: m.role === "assistant" ? "assistant" : "user",
+          content: getMessageText(m),
         })),
         ...extra,
       };
 
       if (systemMessages.length > 0) {
         params.system = systemMessages.join("\n\n");
-      }
-
-      if (options?.temperature !== undefined) {
-        params.temperature = options.temperature;
       }
 
       const response = await client.messages.create(params);
